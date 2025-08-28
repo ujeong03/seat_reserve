@@ -22,6 +22,30 @@ const isRailway = process.env.RAILWAY_ENVIRONMENT; // Railway 환경 감지
 // 데이터베이스 초기화
 const db = new Database();
 
+// 서버 시작 시 활성 좌석 지정 로드
+async function loadActiveSeatAssignments() {
+    try {
+        const assignments = await db.getActiveSeatAssignments();
+        const currentSession = getCurrentSession();
+        
+        assignments.forEach(assignment => {
+            reservations[currentSession][assignment.seat_id] = {
+                studentId: assignment.student_id || 'assigned',
+                name: assignment.student_name,
+                timestamp: new Date().toISOString(),
+                isAssigned: true
+            };
+        });
+        
+        console.log(`✅ ${assignments.length}개의 활성 좌석 지정을 로드했습니다.`);
+    } catch (error) {
+        console.error('좌석 지정 로드 오류:', error);
+    }
+}
+
+// 서버 시작 후 좌석 지정 로드
+setTimeout(loadActiveSeatAssignments, 1000);
+
 const app = express();
 const server = http.createServer(app);
 
@@ -134,13 +158,16 @@ function updateStats() {
 // API 라우트들
 
 // 현재 예약 상황 조회 (기존 클라이언트용)
-app.get('/reservations', (req, res) => {
+app.get('/reservations', async (req, res) => {
     const currentSession = getCurrentSession();
     
-    // 클라이언트에는 이름만 전송 (개인정보 보호)
+    // 클라이언트에는 이름과 지정 여부만 전송 (개인정보 보호)
     const clientReservations = {};
     for (let seat in reservations[currentSession]) {
-        clientReservations[seat] = reservations[currentSession][seat].name;
+        clientReservations[seat] = {
+            name: reservations[currentSession][seat].name,
+            isAssigned: reservations[currentSession][seat].isAssigned || false
+        };
     }
     
     res.json({
@@ -213,10 +240,19 @@ app.post('/reservations', async (req, res) => {
         // 이미 예약된 자리인지 확인
         if (reservations[currentSession][seatId]) {
             console.log(`409 에러 발생 - 좌석 ${seatId}이 이미 예약됨`);
-            return res.status(409).json({
-                success: false,
-                message: '이미 예약된 자리입니다.'
-            });
+            
+            // 지정된 좌석인지 확인
+            if (reservations[currentSession][seatId].isAssigned) {
+                return res.status(409).json({
+                    success: false,
+                    message: '관리자가 지정한 자리입니다.'
+                });
+            } else {
+                return res.status(409).json({
+                    success: false,
+                    message: '이미 예약된 자리입니다.'
+                });
+            }
         }
         
         // 사용자가 이미 다른 자리를 예약했는지 확인
@@ -241,10 +277,13 @@ app.post('/reservations', async (req, res) => {
         
         console.log(`예약 완료 - 좌석: ${seatId}, 학번: ${studentId}, 이름: ${student.name}`);
         
-        // 클라이언트에는 이름만 전송 (개인정보 보호)
+        // 클라이언트에는 이름과 지정 여부만 전송 (개인정보 보호)
         const clientReservations = {};
         for (let seat in reservations[currentSession]) {
-            clientReservations[seat] = reservations[currentSession][seat].name;
+            clientReservations[seat] = {
+                name: reservations[currentSession][seat].name,
+                isAssigned: reservations[currentSession][seat].isAssigned || false
+            };
         }
         
         emitToClients('reservations-updated', clientReservations);
@@ -282,6 +321,14 @@ app.delete('/reservations/:seatId', async (req, res) => {
         return res.status(404).json({
             success: false,
             message: '예약이 없는 자리입니다.'
+        });
+    }
+    
+    // 지정된 좌석인지 확인
+    if (reservations[currentSession][seatId].isAssigned) {
+        return res.status(403).json({
+            success: false,
+            message: '관리자가 지정한 자리는 취소할 수 없습니다.'
         });
     }
     
@@ -360,11 +407,19 @@ app.post('/api/admin/login', async (req, res) => {
 });
 
 // 관리자 전용 - 모든 예약 초기화
-app.delete('/api/admin/reservations', (req, res) => {
+app.delete('/api/admin/reservations', async (req, res) => {
     // 실제로는 JWT 토큰 검증 필요
     const currentSession = getCurrentSession();
     
-    reservations[currentSession] = {};
+    // 예약 초기화 (지정된 좌석은 유지)
+    const assignedSeats = {};
+    for (let seatId in reservations[currentSession]) {
+        if (reservations[currentSession][seatId].isAssigned) {
+            assignedSeats[seatId] = reservations[currentSession][seatId];
+        }
+    }
+    
+    reservations[currentSession] = assignedSeats;
     updateStats();
     
     emitToClients('reservationUpdate', {
@@ -375,12 +430,12 @@ app.delete('/api/admin/reservations', (req, res) => {
     
     emitToClients('adminMessage', {
         type: 'info',
-        message: '관리자가 모든 예약을 초기화했습니다.'
+        message: '관리자가 모든 예약을 초기화했습니다. (지정된 좌석 제외)'
     });
     
     res.json({
         success: true,
-        message: '모든 예약이 초기화되었습니다.'
+        message: '모든 예약이 초기화되었습니다. (지정된 좌석 제외)'
     });
 });
 
@@ -489,7 +544,7 @@ app.get('/api/admin/status', (req, res) => {
 });
 
 // 관리자 전용 - 세션 강제 리셋
-app.post('/api/admin/reset-session', (req, res) => {
+app.post('/api/admin/reset-session', async (req, res) => {
     const { session } = req.body;
     
     if (session !== 'morning' && session !== 'afternoon') {
@@ -499,7 +554,23 @@ app.post('/api/admin/reset-session', (req, res) => {
         });
     }
     
+    // 예약 초기화 (지정된 좌석은 유지)
     reservations[session] = {};
+    
+    // 활성 좌석 지정을 다시 로드
+    try {
+        const assignments = await db.getActiveSeatAssignments();
+        assignments.forEach(assignment => {
+            reservations[session][assignment.seat_id] = {
+                studentId: assignment.student_id || 'assigned',
+                name: assignment.student_name,
+                timestamp: new Date().toISOString(),
+                isAssigned: true
+            };
+        });
+    } catch (error) {
+        console.error('세션 리셋 중 좌석 지정 로드 오류:', error);
+    }
     
     emitToClients('sessionReset', { 
         session,
@@ -510,6 +581,139 @@ app.post('/api/admin/reset-session', (req, res) => {
         success: true,
         message: `${session} 세션이 리셋되었습니다.`
     });
+});
+
+// 관리자 전용 - 좌석 지정
+app.post('/api/admin/assign-seat', async (req, res) => {
+    const { seatId, studentName, studentId, startDate, endDate, isPermanent } = req.body;
+    
+    if (!seatId || !studentName) {
+        return res.status(400).json({
+            success: false,
+            message: '좌석 번호와 학생 이름을 입력해주세요.'
+        });
+    }
+    
+    try {
+        // 기존 좌석 지정이 있으면 삭제
+        await db.removeSeatAssignment(seatId);
+        
+        // 새로운 좌석 지정 추가
+        const assignment = await db.addSeatAssignment(
+            seatId, 
+            studentName, 
+            studentId || null, 
+            isPermanent ? null : startDate, 
+            isPermanent ? null : endDate, 
+            isPermanent
+        );
+        
+        // 현재 세션의 해당 좌석을 지정된 학생으로 설정
+        const currentSession = getCurrentSession();
+        reservations[currentSession][seatId] = {
+            studentId: studentId || 'assigned',
+            name: studentName,
+            timestamp: new Date().toISOString(),
+            isAssigned: true
+        };
+        
+        updateStats();
+        
+        // 클라이언트에게 업데이트 알림
+        const clientReservations = {};
+        for (let seat in reservations[currentSession]) {
+            clientReservations[seat] = {
+                name: reservations[currentSession][seat].name,
+                isAssigned: reservations[currentSession][seat].isAssigned || false
+            };
+        }
+        
+        emitToClients('reservations-updated', clientReservations);
+        emitToClients('adminMessage', {
+            type: 'success',
+            message: `좌석 ${seatId}번이 ${studentName}님에게 지정되었습니다.`
+        });
+        
+        res.json({
+            success: true,
+            message: `좌석 ${seatId}번이 ${studentName}님에게 ${isPermanent ? '영구' : '기간'} 지정되었습니다.`,
+            assignment: assignment
+        });
+        
+    } catch (error) {
+        console.error('좌석 지정 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '좌석 지정에 실패했습니다.'
+        });
+    }
+});
+
+// 관리자 전용 - 좌석 지정 해제
+app.delete('/api/admin/assign-seat/:seatId', async (req, res) => {
+    const { seatId } = req.params;
+    
+    try {
+        const removed = await db.removeSeatAssignment(seatId);
+        
+        if (removed) {
+            // 현재 세션에서도 해당 좌석 해제
+            const currentSession = getCurrentSession();
+            if (reservations[currentSession][seatId] && reservations[currentSession][seatId].isAssigned) {
+                delete reservations[currentSession][seatId];
+                updateStats();
+                
+                // 클라이언트에게 업데이트 알림
+                const clientReservations = {};
+                for (let seat in reservations[currentSession]) {
+                    clientReservations[seat] = {
+                        name: reservations[currentSession][seat].name,
+                        isAssigned: reservations[currentSession][seat].isAssigned || false
+                    };
+                }
+                
+                emitToClients('reservations-updated', clientReservations);
+                emitToClients('adminMessage', {
+                    type: 'info',
+                    message: `좌석 ${seatId}번 지정이 해제되었습니다.`
+                });
+            }
+            
+            res.json({
+                success: true,
+                message: `좌석 ${seatId}번 지정이 해제되었습니다.`
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '해당 좌석에 지정이 없습니다.'
+            });
+        }
+        
+    } catch (error) {
+        console.error('좌석 지정 해제 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '좌석 지정 해제에 실패했습니다.'
+        });
+    }
+});
+
+// 관리자 전용 - 좌석 지정 목록 조회
+app.get('/api/admin/seat-assignments', async (req, res) => {
+    try {
+        const assignments = await db.getAllSeatAssignments();
+        res.json({
+            success: true,
+            assignments: assignments
+        });
+    } catch (error) {
+        console.error('좌석 지정 목록 조회 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '좌석 지정 목록을 불러오는데 실패했습니다.'
+        });
+    }
 });
 
 // 통계 조회
@@ -544,11 +748,14 @@ if (io) {
         
         updateStats();
         
-        // 클라이언트에는 이름만 전송 (개인정보 보호)
+        // 클라이언트에는 이름과 지정 여부만 전송 (개인정보 보호)
         const clientReservations = {};
         const currentSession = getCurrentSession();
         for (let seat in reservations[currentSession]) {
-            clientReservations[seat] = reservations[currentSession][seat].name;
+            clientReservations[seat] = {
+                name: reservations[currentSession][seat].name,
+                isAssigned: reservations[currentSession][seat].isAssigned || false
+            };
         }
         
         // 현재 상황 전송
@@ -572,10 +779,13 @@ if (io) {
         
         const currentSession = getCurrentSession();
         
-        // 관리자에게는 상세 정보 포함하여 전송
+        // 관리자에게는 이름만 전송 (일관성 유지)
         const clientReservations = {};
         for (let seat in reservations[currentSession]) {
-            clientReservations[seat] = reservations[currentSession][seat].name;
+            clientReservations[seat] = {
+                name: reservations[currentSession][seat].name,
+                isAssigned: reservations[currentSession][seat].isAssigned || false
+            };
         }
         
         // 관리자에게 현재 상황 전송
@@ -623,7 +833,7 @@ app.get('/', (req, res) => {
 });
 
 // 자동 세션 리셋 (매분마다 체크)
-setInterval(() => {
+setInterval(async () => {
     const now = new Date();
     const hour = now.getHours();
     const minute = now.getMinutes();
@@ -632,8 +842,24 @@ setInterval(() => {
     if (minute === 0 && (hour === 6 || hour === 12)) {
         const newSession = hour === 6 ? 'morning' : 'afternoon';
         
-        // 예약 초기화
+        // 예약 초기화 (지정된 좌석은 유지)
+        const oldReservations = reservations[newSession] || {};
         reservations[newSession] = {};
+        
+        // 활성 좌석 지정을 다시 로드
+        try {
+            const assignments = await db.getActiveSeatAssignments();
+            assignments.forEach(assignment => {
+                reservations[newSession][assignment.seat_id] = {
+                    studentId: assignment.student_id || 'assigned',
+                    name: assignment.student_name,
+                    timestamp: new Date().toISOString(),
+                    isAssigned: true
+                };
+            });
+        } catch (error) {
+            console.error('세션 리셋 중 좌석 지정 로드 오류:', error);
+        }
         
         // 모든 클라이언트에게 세션 리셋 알림
         emitToClients('sessionReset', {

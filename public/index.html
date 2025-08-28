@@ -32,11 +32,29 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>SCLAB SEAT BOOKING</h1>
-            <div class="header-actions">
-                <a href="admin.html" class="admin-link">관리자 페이지</a>
+        <!-- 네비게이션 바 -->
+        <nav class="navbar">
+            <div class="nav-container">
+                
+                <!-- 햄버거 메뉴 버튼 -->
+                <button class="hamburger" id="hamburger-menu" aria-label="메뉴 열기/닫기">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <!-- 네비게이션 메뉴 -->
+                <div class="nav-menu" id="nav-menu">
+                    <a href="#" class="nav-item" id="home-link">🏠 홈</a>
+                    <a href="admin.html" class="nav-item">⚙️ 관리자</a>
+                </div>
+
+                <div class="nav-brand">SCLAB SEAT BOOKING</div>
+
             </div>
+        </nav>
+
+        <header>
             <div class="time-info">
                 <div class="current-time">현재 시간: <span id="current-time"></span></div>
                 <div class="session-info">현재 세션: <span id="current-session"></span></div>
@@ -95,22 +113,25 @@
                 </div>
             </div>
 
-            <!-- 방 아래쪽의 1x5 배열 -->
-            <div class="bottom-table">
-                <div class="seats-grid table-1x5">
-                    <div class="seat" data-seat="9" tabindex="0" role="button" aria-label="9번 좌석">9</div>
-                    <div class="seat" data-seat="10" tabindex="0" role="button" aria-label="10번 좌석">10</div>
-                    <div class="seat" data-seat="11" tabindex="0" role="button" aria-label="11번 좌석">11</div>
-                    <div class="seat" data-seat="12" tabindex="0" role="button" aria-label="12번 좌석">12</div>
-                    <div class="seat" data-seat="13" tabindex="0" role="button" aria-label="13번 좌석">13</div>
+            <!-- 방 아래쪽의 1x5 배열과 출입구 -->
+            <div class="bottom-area">
+                <!-- 방문 (왼쪽) -->
+                <div class="door">출입구</div>
+                
+                <!-- 1x5 좌석 (오른쪽) -->
+                <div class="bottom-table">
+                    <div class="seats-grid table-1x5">
+                        <div class="seat" data-seat="9" tabindex="0" role="button" aria-label="9번 좌석">9</div>
+                        <div class="seat" data-seat="10" tabindex="0" role="button" aria-label="10번 좌석">10</div>
+                        <div class="seat" data-seat="11" tabindex="0" role="button" aria-label="11번 좌석">11</div>
+                        <div class="seat" data-seat="12" tabindex="0" role="button" aria-label="12번 좌석">12</div>
+                        <div class="seat" data-seat="13" tabindex="0" role="button" aria-label="13번 좌석">13</div>
+                    </div>
                 </div>
             </div>
 
             <!-- 창문 (오른쪽) -->
             <div class="window right-window">창문</div>
-
-            <!-- 방문 (왼쪽 하단) -->
-            <div class="door">출입구</div>
         </div>
 
         <div class="controls">
@@ -137,6 +158,9 @@
             </div>
         </footer>
     </div>
+
+    <!-- 네비게이션 오버레이 -->
+    <div class="nav-overlay" id="nav-overlay"></div>
 
     <!-- 클라이언트 스크립트 -->
     <script src="user.js"></script>

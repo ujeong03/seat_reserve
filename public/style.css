@@ -1,6 +1,9 @@
 /* 기본 스타일 */
 :root {
     --vh: 1vh;
+    --navbar-height: 60px;
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
 }
 
 * {
@@ -17,6 +20,125 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    padding-top: var(--navbar-height); /* 네비게이션 바 공간 확보 */
+}
+
+/* 네비게이션 바 스타일 */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--navbar-height);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-brand {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+}
+
+/* 햄버거 메뉴 버튼 */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    z-index: 1001;
+}
+
+.hamburger span {
+    width: 25px;
+    height: 3px;
+    background: white;
+    margin: 3px 0;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+/* 햄버거 메뉴 활성화 시 애니메이션 */
+.hamburger.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* 네비게이션 메뉴 */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-item {
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.nav-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.3);
+    margin: 0 10px;
+}
+
+/* 인증 섹션 */
+.auth-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.login-status {
+    color: white;
+    font-size: 14px;
+}
+
+.auth-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.auth-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
 }
 
 /* 터치 기기 최적화 */
@@ -194,7 +316,7 @@ header h1 {
     padding: 30px;
     margin-bottom: 30px;
     position: relative;
-    min-height: 600px;
+    min-height: 450px; /* 600px에서 450px로 줄임 */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -214,7 +336,7 @@ header h1 {
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    width: 200px;
+    width: 280px; /* 더 길게 */
 }
 
 .right-window {
@@ -222,8 +344,8 @@ header h1 {
     right: 15px;
     top: 30%;
     transform: translateY(-50%);
-    width: 60px;
-    height: 200px;
+    width: 45px;  /* 너비 감소 */
+    height: 250px; /* 길이 증가 */
     writing-mode: vertical-rl;
     text-orientation: mixed;
     display: flex;
@@ -233,9 +355,6 @@ header h1 {
 
 /* 방문 스타일 */
 .door {
-    position: absolute;
-    bottom: 120px;
-    left: 80px;
     width: 70px;
     height: 100px;
     background: #8B4513;
@@ -246,7 +365,17 @@ header h1 {
     border-radius: 5px;
     font-weight: bold;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    z-index: 1; /* 좌석 선택에 방해되지 않도록 */
+    z-index: 1;
+}
+
+/* 하단 영역 - 출입구와 1x5 좌석을 한 라인에 배치 */
+.bottom-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 40px; /* 60px에서 40px로 줄임 */
+    flex-wrap: wrap;
 }
 
 /* 중앙 테이블들 */
@@ -255,7 +384,7 @@ header h1 {
     flex-direction: row !important; /* 항상 가로로 배치 */
     justify-content: center;
     gap: 80px;
-    margin: 80px 0;
+    margin: 60px 0; /* 80px에서 60px로 줄임 */
     align-items: center; /* 수직 중앙 정렬 */
 }
 
@@ -271,7 +400,7 @@ header h1 {
 /* 하단 테이블 */
 .bottom-table {
     text-align: center;
-    margin-top: 60px;
+    /* margin-top 제거 - bottom-area에서 관리 */
 }
 
 /* 좌석 그리드 */
@@ -325,6 +454,31 @@ header h1 {
     border-color: #f44336;
     color: #c62828;
     cursor: not-allowed;
+}
+
+.seat.assigned {
+    background: #f3e5f5;
+    border-color: #9c27b0;
+    color: #6a1b9a;
+    cursor: not-allowed;
+    position: relative;
+    box-shadow: 0 0 10px rgba(156, 39, 176, 0.3);
+}
+
+.seat.assigned::after {
+    content: '👑';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 12px;
+    background: #ffd700;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e6c200;
 }
 
 .seat.my-seat {
@@ -417,7 +571,8 @@ header h1 {
     justify-content: center;
 }
 
-#user-name {
+#user-name,
+#student-id {
     padding: 10px;
     border: 2px solid #ddd;
     border-radius: 5px;
@@ -426,9 +581,18 @@ header h1 {
     max-width: 200px;
 }
 
-#user-name:focus {
+#user-name:focus,
+#student-id:focus {
     outline: none;
     border-color: #667eea;
+}
+
+/* 액션 버튼들 */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
 }
 
 button {
@@ -439,6 +603,8 @@ button {
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: bold;
+    flex: 1; /* 버튼들이 동일한 크기를 가지도록 */
+    max-width: 120px; /* 최대 너비 제한 */
 }
 
 #reserve-btn {
@@ -567,6 +733,82 @@ button:disabled {
 
 /* 모바일 (768px 이하) */
 @media (max-width: 768px) {
+    /* 네비게이션 바 모바일 스타일 */
+    .hamburger {
+        display: flex;
+    }
+    
+    .nav-menu {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 80%;
+        height: 100vh;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding: 80px 30px 30px;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        gap: 25px;
+    }
+    
+    .nav-menu.active {
+        left: 0;
+    }
+    
+    .nav-item {
+        width: 100%;
+        padding: 15px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+        display: block;
+    }
+    
+    /* 관리자 페이지의 auth-section만 스타일링 */
+    .admin-page .nav-divider {
+        width: 100%;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.3);
+        margin: 10px 0;
+    }
+    
+    .admin-page .auth-section {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .admin-page .auth-btn {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 16px;
+        text-align: center;
+    }
+    
+    /* 오버레이 */
+    .nav-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
     .container {
         padding: 10px;
     }
@@ -603,25 +845,61 @@ button:disabled {
     }
     
     .legend {
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px;
+        flex-direction: row; /* 모바일에서도 한 줄로 유지 */
+        flex-wrap: wrap; /* 필요시 줄바꿈 허용 */
+        gap: 8px; /* 간격 줄임 */
+        padding: 8px;
+        justify-content: space-around;
     }
     
     .legend-top {
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px;
-        margin: 15px 0;
+        flex-direction: row; /* 모바일에서도 한 줄로 유지 */
+        flex-wrap: wrap; /* 필요시 줄바꿈 허용 */
+        gap: 15px; /* 간격 줄임 */
+        padding: 8px;
+        margin: 10px 0;
+        justify-content: space-around;
     }
     
     .legend-item {
-        justify-content: center;
+        font-size: 12px; /* 폰트 크기 줄임 */
+        gap: 5px; /* 아이콘과 텍스트 간격 줄임 */
+    }
+    
+    .legend .legend-item .seat-status,
+    .legend-top .legend-item .seat-status {
+        width: 16px; /* 크기 줄임 */
+        height: 16px;
     }
     
     .user-input {
-        flex-direction: column;
-        gap: 12px;
+        flex-direction: row; /* 모바일에서도 한 줄로 유지 */
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .user-input label {
+        white-space: nowrap; /* 라벨 줄바꿈 방지 */
+        font-size: 14px;
+    }
+    
+    .user-input input {
+        flex: 1; /* 나머지 공간 모두 사용 */
+        min-width: 0; /* flexbox에서 input의 최소 너비 제한 해제 */
+    }
+    
+    .action-buttons {
+        flex-direction: row; /* 모바일에서도 한 줄로 유지 */
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .action-buttons button {
+        flex: 1;
+        max-width: none; /* 모바일에서는 최대 너비 제한 해제 */
+        padding: 12px 16px;
+        font-size: 14px;
     }
     
     #user-name {
@@ -638,7 +916,7 @@ button:disabled {
     
     .room-layout {
         padding: 15px;
-        min-height: 450px;
+        min-height: 350px; /* 450px에서 350px로 줄임 */
     }
     
     .top-window {
@@ -758,8 +1036,16 @@ button:disabled {
         flex-wrap: nowrap;
     }
     
-    .bottom-table {
+    .bottom-area {
+        flex-direction: row; /* 모바일에서도 한 라인 유지 */
+        gap: 15px; /* 간격 더 줄임 */
         margin-top: 40px;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .bottom-table {
+        margin-top: 0; /* bottom-area에서 관리하므로 제거 */
     }
     
     .table-group h3,
@@ -792,18 +1078,18 @@ button:disabled {
     
     .room-layout {
         padding: 10px;
-        min-height: 400px;
+        min-height: 320px; /* 400px에서 320px로 줄임 */
     }
     
     .top-window {
-        width: 100px;
+        width: 140px; /* 모바일에서 더 길게 */
         padding: 6px;
         font-size: 10px;
     }
     
     .right-window {
-        width: 40px !important;
-        height: 140px !important;
+        width: 30px !important;  /* 모바일에서 더 작게 */
+        height: 180px !important; /* 모바일에서 적당한 길이 */
         padding: 6px;
         font-size: 11px;
         writing-mode: vertical-rl !important;
@@ -819,12 +1105,16 @@ button:disabled {
     }
     
     .door {
-        width: 45px;
-        height: 65px;
-        font-size: 10px;
-        bottom: 70px;
-        left: 50px;
-        z-index: 1;
+        width: 40px;  /* 모바일에서 크기 더 작게 */
+        height: 60px;
+        font-size: 9px;
+        /* position 속성 제거 - bottom-area에서 관리 */
+    }
+    
+    .seat {
+        width: 40px;  /* 모바일에서 좌석 크기 조정 */
+        height: 40px;
+        font-size: 12px;
     }
     
     .reservation-panel {
@@ -922,11 +1212,19 @@ button:disabled {
     }
     
     .room-layout {
-        min-height: 350px;
+        min-height: 280px; /* 350px에서 280px로 줄임 */
+    }
+    
+    .bottom-area {
+        flex-direction: row;
+        gap: 25px;
+        margin-top: 30px;
+        justify-content: center;
+        align-items: center;
     }
     
     .bottom-table {
-        margin-top: 30px;
+        margin-top: 0;
     }
     
     .table-1x5 {
@@ -1204,4 +1502,148 @@ button:disabled {
     .admin-cancel-btn {
         align-self: flex-end;
     }
+}
+
+/* 관리자 페이지 미니 레이아웃 */
+.room-layout.mini {
+    min-height: 200px;
+    padding: 15px;
+    transform: scale(0.6);
+    transform-origin: top center;
+    margin: -50px 0;
+}
+
+.window.mini {
+    font-size: 8px;
+    padding: 4px;
+}
+
+.top-window.mini {
+    width: 120px;
+}
+
+.right-window.mini {
+    width: 25px;
+    height: 100px;
+}
+
+.door.mini {
+    width: 35px;
+    height: 50px;
+    font-size: 7px;
+}
+
+.seat.mini {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* 모달 스타일 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.assign-form .form-group {
+    margin-bottom: 15px;
+}
+
+.assign-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.assign-form input,
+.assign-form select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.assign-form input:focus,
+.assign-form select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.assign-form input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.action-btn.success {
+    background: #4CAF50;
+    color: white;
+}
+
+.action-btn.success:hover {
+    background: #45a049;
 }

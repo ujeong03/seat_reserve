@@ -12,7 +12,43 @@ let systemLogs = [];
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     initializeAdminApp();
+    initializeNavigation();
 });
+
+// 네비게이션 초기화
+function initializeNavigation() {
+    const hamburger = document.getElementById('hamburger-menu');
+    const navMenu = document.getElementById('nav-menu');
+    const navOverlay = document.getElementById('nav-overlay');
+    
+    // 햄버거 메뉴 토글
+    hamburger.addEventListener('click', () => {
+        hamburger.classList.toggle('active');
+        navMenu.classList.toggle('active');
+        navOverlay.classList.toggle('active');
+        document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
+    });
+    
+    // 오버레이 클릭 시 메뉴 닫기
+    navOverlay.addEventListener('click', () => {
+        closeNavMenu();
+    });
+    
+    // 메뉴 아이템 클릭 시 메뉴 닫기
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            closeNavMenu();
+        });
+    });
+}
+
+// 네비게이션 메뉴 닫기
+function closeNavMenu() {
+    document.getElementById('hamburger-menu').classList.remove('active');
+    document.getElementById('nav-menu').classList.remove('active');
+    document.getElementById('nav-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
 
 // 관리자 앱 초기화
 function initializeAdminApp() {
@@ -280,11 +316,25 @@ function updateSeatDisplay() {
         const seatId = seat.dataset.seat;
         
         // 모든 상태 클래스 제거
-        seat.classList.remove('available', 'occupied');
+        seat.classList.remove('available', 'occupied', 'assigned');
         
         if (reservations[seatId]) {
-            seat.classList.add('occupied');
-            seat.title = `${seatId}번 - ${reservations[seatId]}님이 예약`;
+            const reservation = reservations[seatId];
+            
+            // 새로운 데이터 구조 확인 (객체인지 문자열인지)
+            if (typeof reservation === 'object') {
+                if (reservation.isAssigned) {
+                    seat.classList.add('assigned');
+                    seat.title = `${seatId}번 - ${reservation.name}님 지정석`;
+                } else {
+                    seat.classList.add('occupied');
+                    seat.title = `${seatId}번 - ${reservation.name}님이 예약`;
+                }
+            } else {
+                // 이전 데이터 구조 호환성 (문자열)
+                seat.classList.add('occupied');
+                seat.title = `${seatId}번 - ${reservation}님이 예약`;
+            }
         } else {
             seat.classList.add('available');
             seat.title = `${seatId}번 - 예약 가능`;
@@ -801,3 +851,119 @@ showDashboard = function() {
         loadStudentsList();
     }, 100);
 };
+
+// 좌석 지정 기능
+function showSeatAssignModal() {
+    const modal = document.getElementById('seat-assign-modal');
+    
+    // 오늘 날짜를 기본값으로 설정
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('assign-start-date').value = today;
+    
+    // 1주일 후를 종료일 기본값으로 설정
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    document.getElementById('assign-end-date').value = nextWeek.toISOString().split('T')[0];
+    
+    modal.style.display = 'flex';
+}
+
+function closeSeatAssignModal() {
+    const modal = document.getElementById('seat-assign-modal');
+    modal.style.display = 'none';
+    
+    // 폼 초기화
+    document.getElementById('assign-seat-number').value = '';
+    document.getElementById('assign-student-name').value = '';
+    document.getElementById('assign-student-id').value = '';
+    document.getElementById('assign-start-date').value = '';
+    document.getElementById('assign-end-date').value = '';
+    document.getElementById('assign-permanent').checked = false;
+}
+
+async function assignSeat() {
+    const seatNumber = document.getElementById('assign-seat-number').value;
+    const studentName = document.getElementById('assign-student-name').value.trim();
+    const studentId = document.getElementById('assign-student-id').value.trim();
+    const startDate = document.getElementById('assign-start-date').value;
+    const endDate = document.getElementById('assign-end-date').value;
+    const isPermanent = document.getElementById('assign-permanent').checked;
+    
+    // 입력 검증
+    if (!seatNumber) {
+        showError('좌석을 선택해주세요.');
+        return;
+    }
+    
+    if (!studentName) {
+        showError('학생 이름을 입력해주세요.');
+        return;
+    }
+    
+    if (!studentId) {
+        showError('학번을 입력해주세요.');
+        return;
+    }
+    
+    if (!isPermanent && (!startDate || !endDate)) {
+        showError('시작일과 종료일을 선택해주세요.');
+        return;
+    }
+    
+    if (!isPermanent && new Date(startDate) > new Date(endDate)) {
+        showError('종료일은 시작일보다 늦어야 합니다.');
+        return;
+    }
+    
+    try {
+        const assignmentData = {
+            seatId: seatNumber,
+            studentName,
+            studentId,
+            startDate: isPermanent ? null : startDate,
+            endDate: isPermanent ? null : endDate,
+            isPermanent
+        };
+        
+        const response = await fetch('/api/admin/assign-seat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(assignmentData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess(`${seatNumber}번 좌석이 ${studentName}(${studentId})님에게 지정되었습니다.`);
+            closeSeatAssignModal();
+            
+            // 좌석 현황 업데이트
+            updateSeatDisplay();
+            loadReservations();
+            
+            const durationText = isPermanent ? '영구' : `${startDate} ~ ${endDate}`;
+            addLog(`좌석 지정: ${seatNumber}번 → ${studentName}(${studentId}) [${durationText}]`);
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        handleError(error, '좌석 지정에 실패했습니다.');
+    }
+}
+
+// 모달 외부 클릭 시 닫기
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('seat-assign-modal');
+    if (event.target === modal) {
+        closeSeatAssignModal();
+    }
+});
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeSeatAssignModal();
+    }
+});

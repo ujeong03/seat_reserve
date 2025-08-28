@@ -12,7 +12,43 @@ let onlineUsersCount = 0;
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
+    initializeNavigation();
 });
+
+// 네비게이션 초기화
+function initializeNavigation() {
+    const hamburger = document.getElementById('hamburger-menu');
+    const navMenu = document.getElementById('nav-menu');
+    const navOverlay = document.getElementById('nav-overlay');
+    
+    // 햄버거 메뉴 토글
+    hamburger.addEventListener('click', () => {
+        hamburger.classList.toggle('active');
+        navMenu.classList.toggle('active');
+        navOverlay.classList.toggle('active');
+        document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
+    });
+    
+    // 오버레이 클릭 시 메뉴 닫기
+    navOverlay.addEventListener('click', () => {
+        closeNavMenu();
+    });
+    
+    // 메뉴 아이템 클릭 시 메뉴 닫기
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            closeNavMenu();
+        });
+    });
+}
+
+// 네비게이션 메뉴 닫기
+function closeNavMenu() {
+    document.getElementById('hamburger-menu').classList.remove('active');
+    document.getElementById('nav-menu').classList.remove('active');
+    document.getElementById('nav-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
 
 // 앱 초기화
 function initializeApp() {
@@ -364,11 +400,25 @@ function updateSeatDisplay() {
         const seatId = seat.dataset.seat;
         
         // 모든 상태 클래스 제거
-        seat.classList.remove('available', 'occupied', 'my-seat');
+        seat.classList.remove('available', 'occupied', 'my-seat', 'assigned');
         
         if (reservations[seatId]) {
-            seat.classList.add('occupied');
-            seat.setAttribute('aria-label', `${seatId}번 좌석 - ${reservations[seatId]}님이 예약`);
+            const reservation = reservations[seatId];
+            
+            // 새로운 데이터 구조 확인 (객체인지 문자열인지)
+            if (typeof reservation === 'object') {
+                if (reservation.isAssigned) {
+                    seat.classList.add('assigned');
+                    seat.setAttribute('aria-label', `${seatId}번 좌석 - ${reservation.name}님 지정석`);
+                } else {
+                    seat.classList.add('occupied');
+                    seat.setAttribute('aria-label', `${seatId}번 좌석 - ${reservation.name}님이 예약`);
+                }
+            } else {
+                // 이전 데이터 구조 호환성 (문자열)
+                seat.classList.add('occupied');
+                seat.setAttribute('aria-label', `${seatId}번 좌석 - ${reservation}님이 예약`);
+            }
         } else {
             seat.classList.add('available');
             seat.setAttribute('aria-label', `${seatId}번 좌석 - 예약 가능`);
@@ -385,7 +435,18 @@ function updateSelectedSeatInfo() {
     
     if (selectedSeat) {
         selectedSeatElement.textContent = `${selectedSeat}번`;
-        seatOwnerElement.textContent = reservations[selectedSeat] || '예약 가능';
+        
+        if (reservations[selectedSeat]) {
+            const reservation = reservations[selectedSeat];
+            if (typeof reservation === 'object') {
+                seatOwnerElement.textContent = reservation.isAssigned ? 
+                    `${reservation.name} (지정석)` : reservation.name;
+            } else {
+                seatOwnerElement.textContent = reservation;
+            }
+        } else {
+            seatOwnerElement.textContent = '예약 가능';
+        }
     } else {
         selectedSeatElement.textContent = '없음';
         seatOwnerElement.textContent = '-';
@@ -399,13 +460,25 @@ function updateButtons() {
     
     const hasUser = currentUser.length > 0;
     const hasSeat = selectedSeat !== null;
-    const isOccupied = reservations[selectedSeat];
+    const reservation = reservations[selectedSeat];
+    
+    let isOccupied = false;
+    let isAssigned = false;
+    
+    if (reservation) {
+        if (typeof reservation === 'object') {
+            isOccupied = true;
+            isAssigned = reservation.isAssigned;
+        } else {
+            isOccupied = true;
+        }
+    }
     
     // 예약 버튼 - 학번이 있고, 좌석이 선택되고, 좌석이 비어있고, 점검모드가 아닌 경우
     reserveBtn.disabled = !(hasUser && hasSeat && !isOccupied && !isMaintenanceMode);
     
-    // 취소 버튼 - 학번이 있고, 좌석이 선택되고, 좌석이 예약된 경우 (서버에서 학번 확인)
-    cancelBtn.disabled = !(hasUser && hasSeat && isOccupied);
+    // 취소 버튼 - 학번이 있고, 좌석이 선택되고, 좌석이 예약되고, 지정석이 아닌 경우
+    cancelBtn.disabled = !(hasUser && hasSeat && isOccupied && !isAssigned);
 }
 
 // 시간 표시 업데이트

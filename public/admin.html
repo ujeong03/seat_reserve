@@ -23,13 +23,32 @@
 </head>
 <body class="admin-page">
     <div class="container">
-        <header class="admin-header">
-            <h1>🔧 관리자 페이지</h1>
-            <div class="header-nav">
-                <a href="index.html" class="back-link">← 사용자 페이지로</a>
-                <button id="logout-btn" onclick="logout()" class="logout-btn">로그아웃</button>
+        <!-- 네비게이션 바 -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">SCLAB ADMIN</div>
+                
+                <!-- 햄버거 메뉴 버튼 -->
+                <button class="hamburger" id="hamburger-menu" aria-label="메뉴 열기/닫기">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <!-- 네비게이션 메뉴 -->
+                <div class="nav-menu" id="nav-menu">
+                    <a href="index.html" class="nav-item">🏠 사용자 페이지</a>
+                    <a href="#" class="nav-item" id="admin-link">⚙️ 관리자</a>
+                    <div class="nav-divider"></div>
+                    <div class="auth-section">
+                        <div class="login-status" id="login-status">
+                            <span id="admin-greeting">관리자 모드</span>
+                        </div>
+                        <button class="auth-btn" id="admin-logout-btn" onclick="logout()">로그아웃</button>
+                    </div>
+                </div>
             </div>
-        </header>
+        </nav>
 
         <!-- 로그인 패널 -->
         <div id="login-panel" class="login-panel">
@@ -88,16 +107,21 @@
             <div class="seat-overview">
                 <h3>좌석 현황</h3>
                 <div class="room-layout mini">
-                    <!-- 중앙 테이블 -->
+                    <!-- 창문 (위쪽) -->
+                    <div class="window top-window mini">창문</div>
+                    
+                    <!-- 방 중앙의 2x2 배열 테이블 2개 -->
                     <div class="center-tables">
-                        <div class="table-group">
+                        <div class="table-group" id="admin-table-group-1">
                             <div class="seats-grid table-2x2">
                                 <div class="seat mini" data-seat="1">1</div>
                                 <div class="seat mini" data-seat="2">2</div>
                                 <div class="seat mini" data-seat="3">3</div>
                                 <div class="seat mini" data-seat="4">4</div>
                             </div>
-                 
+                        </div>
+                        
+                        <div class="table-group" id="admin-table-group-2">
                             <div class="seats-grid table-2x2">
                                 <div class="seat mini" data-seat="5">5</div>
                                 <div class="seat mini" data-seat="6">6</div>
@@ -106,16 +130,26 @@
                             </div>
                         </div>
                     </div>
-                    <!-- 하단 테이블 -->
-                    <div class="bottom-table">
-                        <div class="seats-grid table-1x5">
-                            <div class="seat mini" data-seat="9">9</div>
-                            <div class="seat mini" data-seat="10">10</div>
-                            <div class="seat mini" data-seat="11">11</div>
-                            <div class="seat mini" data-seat="12">12</div>
-                            <div class="seat mini" data-seat="13">13</div>
+
+                    <!-- 방 아래쪽의 1x5 배열과 출입구 -->
+                    <div class="bottom-area">
+                        <!-- 방문 (왼쪽) -->
+                        <div class="door mini">출입구</div>
+                        
+                        <!-- 1x5 좌석 (오른쪽) -->
+                        <div class="bottom-table">
+                            <div class="seats-grid table-1x5">
+                                <div class="seat mini" data-seat="9">9</div>
+                                <div class="seat mini" data-seat="10">10</div>
+                                <div class="seat mini" data-seat="11">11</div>
+                                <div class="seat mini" data-seat="12">12</div>
+                                <div class="seat mini" data-seat="13">13</div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- 창문 (오른쪽) -->
+                    <div class="window right-window mini">창문</div>
                 </div>
             </div>
 
@@ -140,9 +174,67 @@
                     <button id="maintenance-btn" onclick="toggleMaintenanceMode()" class="action-btn">
                         🔧 점검 모드
                     </button>
-                    <button onclick="exportData()" class="action-btn info">
-                        📊 데이터 내보내기
+                    <button onclick="showSeatAssignModal()" class="action-btn info">
+                        🎯 좌석 지정하기
                     </button>
+                </div>
+            </div>
+
+            <!-- 좌석 지정 모달 -->
+            <div id="seat-assign-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>좌석 지정하기</h3>
+                        <button class="close-btn" onclick="closeSeatAssignModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="assign-form">
+                            <div class="form-group">
+                                <label for="assign-seat-number">좌석 번호:</label>
+                                <select id="assign-seat-number">
+                                    <option value="">좌석을 선택하세요</option>
+                                    <option value="1">1번 좌석</option>
+                                    <option value="2">2번 좌석</option>
+                                    <option value="3">3번 좌석</option>
+                                    <option value="4">4번 좌석</option>
+                                    <option value="5">5번 좌석</option>
+                                    <option value="6">6번 좌석</option>
+                                    <option value="7">7번 좌석</option>
+                                    <option value="8">8번 좌석</option>
+                                    <option value="9">9번 좌석</option>
+                                    <option value="10">10번 좌석</option>
+                                    <option value="11">11번 좌석</option>
+                                    <option value="12">12번 좌석</option>
+                                    <option value="13">13번 좌석</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="assign-student-name">학생 이름:</label>
+                                <input type="text" id="assign-student-name" placeholder="학생 이름을 입력하세요" maxlength="20">
+                            </div>
+                            <div class="form-group">
+                                <label for="assign-student-id">학번:</label>
+                                <input type="text" id="assign-student-id" placeholder="학번을 입력하세요" maxlength="20">
+                            </div>
+                            <div class="form-group">
+                                <label for="assign-start-date">시작일:</label>
+                                <input type="date" id="assign-start-date">
+                            </div>
+                            <div class="form-group">
+                                <label for="assign-end-date">종료일:</label>
+                                <input type="date" id="assign-end-date">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="assign-permanent"> 영구 지정 (세션 만료 무시)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="modal-actions">
+                            <button onclick="assignSeat()" class="action-btn success">지정하기</button>
+                            <button onclick="closeSeatAssignModal()" class="action-btn">취소</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -195,6 +287,9 @@
             </div>
         </div>
     </div>
+
+    <!-- 네비게이션 오버레이 -->
+    <div class="nav-overlay" id="nav-overlay"></div>
 
     <!-- 관리자 스크립트 -->
     <script src="admin.js"></script>
