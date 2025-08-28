@@ -46,8 +46,18 @@ jspm_packages/
 # dotenv environment variables file
 .env
 
-# Database files
+# Database files and sensitive data
 *.db
+*.sqlite
+*.sqlite3
+data/
+backups/
+
+# Environment and config files
+.env
+.env.local
+.env.production
+config/secrets.json
 *.sqlite
 *.sqlite3
 data/
