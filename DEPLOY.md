@@ -12,68 +12,58 @@ Railway는 Node.js + Socket.IO + SQLite를 완벽 지원합니다.
 
 1. **Railway 계정 생성**: https://railway.app
 2. **GitHub로 로그인**
-3. **"New Project" → "Deploy from GitHub repo"**
-4. **`seat_reserve` 저장소 선택**
-5. **환경변수 설정**:
-   ```
-   NODE_ENV=production
-   ADMIN_PASSWORD=강력한_비밀번호
-   ```
-6. **자동 배포 완료!**
+3. **"New Project" 클릭**
+4. **GitHub 저장소 선택**: `sclab_seatmap`
+5. **프로젝트 설정**:
+   - Framework Preset: **Other**
+   - Root Directory: **/** (기본값)
+   - Build Command: 비워둠
+   - Output Directory: 비워둠
+   - Install Command: `npm install`
 
-**Railway 장점:**
-✅ Socket.IO 실시간 통신 지원
-✅ SQLite 파일 저장 유지  
-✅ 무료 플랜 제공 (월 500시간)
-✅ 자동 HTTPS 제공
-✅ GitHub 연동으로 자동 배포
+### 3. 환경변수 설정
 
----
+Vercel 대시보드에서 다음 환경변수들을 설정하세요:
 
-## 🔄 **대안: Vercel용 단순화 버전**
-
-실시간 기능 없이 Vercel에 배포하려면:
-
-### 1. 클라이언트 코드 변경
-`public/index.html`에서 스크립트 변경:
-```html
-<!-- 기존 -->
-<script src="user.js"></script>
-
-<!-- 변경 -->
-<script src="user-serverless.js"></script>
+```
+NODE_ENV=production
+ADMIN_PASSWORD=your_secure_password_here
+CORS_ORIGIN=https://your-project-name.vercel.app
+PORT=3000
 ```
 
-### 2. 제한사항
-⚠️ **실시간 동기화 없음** (5초마다 새로고침)  
-⚠️ **데이터 휘발성** (서버 재시작시 초기화)  
-⚠️ **관리자 실시간 모니터링 제한**  
+**⚠️ 중요**: `ADMIN_PASSWORD`는 반드시 강력한 비밀번호로 설정하세요!
 
-### 3. Vercel 배포
-1. 위 변경사항 적용 후 GitHub 푸시
-2. Vercel에서 프로젝트 가져오기
-3. 환경변수 설정:
-   ```
-   NODE_ENV=production
-   ADMIN_PASSWORD=비밀번호
-   ```
+### 4. 배포 완료 후 테스트
 
----
+✅ **기본 기능 테스트**
+- [ ] 메인 페이지 (`https://your-project.vercel.app`) 접속
+- [ ] 좌석 선택 및 예약 기능
+- [ ] 관리자 페이지 (`/admin.html`) 접속
+- [ ] 실시간 동기화 확인
 
-## 📊 **배포 방법 비교**
+✅ **모바일 테스트**
+- [ ] 모바일에서 접속 확인
+- [ ] 반응형 디자인 확인
 
-| 기능 | Railway | Vercel (단순화) |
-|------|---------|----------------|
-| 실시간 동기화 | ✅ | ❌ |
-| 데이터 지속성 | ✅ | ❌ |
-| 배포 복잡도 | 쉬움 | 쉬움 |
-| 무료 사용량 | 500시간/월 | 무제한 |
-| HTTPS | 자동 | 자동 |
+## 🛠️ 문제 해결
 
-## � **추가 리소스**
+### 배포 실패 시
+1. Vercel 대시보드의 "Functions" 탭에서 로그 확인
+2. `vercel.json` 설정 확인
+3. 환경변수 설정 확인
 
-- [Railway 배포 상세 가이드](./DEPLOY-RAILWAY.md)
-- [Vercel 문제 해결 가이드](https://vercel.com/docs/troubleshooting)
+### SQLite 관련 이슈
+- Vercel은 서버리스 환경이므로 데이터는 매 배포시 초기화됩니다
+- 영구적인 데이터 저장이 필요하다면 외부 데이터베이스 서비스 사용을 권장합니다
+
+### CORS 오류 시
+- `CORS_ORIGIN` 환경변수에 실제 배포 도메인을 정확히 설정했는지 확인
+- 예: `https://my-seat-app.vercel.app`
+
+## 📞 지원
+
+배포 중 문제가 발생하면 Vercel 공식 문서를 참고하거나 GitHub Issues를 확인하세요.
 
 ---
 **추천**: 실시간 기능이 중요하다면 **Railway 사용**을 강력히 권장합니다!

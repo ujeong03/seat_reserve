@@ -12,25 +12,38 @@ const Database = require('./database');
 // 환경변수 로드
 require('dotenv').config();
 
+// 환경변수 설정 (먼저 선언)
+const PORT = process.env.PORT || 3000;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const isVercelProduction = process.env.VERCEL || NODE_ENV === 'production';
+
 // 데이터베이스 초기화
 const db = new Database();
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
-    cors: {
-        origin: NODE_ENV === 'production' 
-            ? [process.env.CORS_ORIGIN || "*"] 
-            : "*",
-        methods: ["GET", "POST"],
-        credentials: true
-    }
-});
 
-// 환경변수 설정
-const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const NODE_ENV = process.env.NODE_ENV || 'development';
+// Socket.IO는 개발환경에서만 사용 (Vercel에서는 비활성화)
+let io = null;
+if (!isVercelProduction) {
+    io = socketIo(server, {
+        cors: {
+            origin: NODE_ENV === 'production' 
+                ? [process.env.CORS_ORIGIN || "*"] 
+                : "*",
+            methods: ["GET", "POST"],
+            credentials: true
+        }
+    });
+}
+
+// Socket.IO 이벤트 발송 헬퍼 (Vercel에서는 무시)
+function emitToClients(event, data) {
+    if (io) {
+        emitToClients(event, data);
+    }
+}
 
 // 미들웨어 설정
 app.use(helmet({
@@ -230,8 +243,8 @@ app.post('/reservations', async (req, res) => {
             clientReservations[seat] = reservations[currentSession][seat].name;
         }
         
-        io.emit('reservations-updated', clientReservations);
-        io.emit('reservation-success', { seatId, userName: student.name });
+        emitToClients('reservations-updated', clientReservations);
+        emitToClients('reservation-success', { seatId, userName: student.name });
         
         res.json({
             success: true,
@@ -297,8 +310,8 @@ app.delete('/reservations/:seatId', async (req, res) => {
             clientReservations[seat] = reservations[currentSession][seat].name;
         }
         
-        io.emit('reservations-updated', clientReservations);
-        io.emit('cancellation-success', { seatId, studentId });
+        emitToClients('reservations-updated', clientReservations);
+        emitToClients('cancellation-success', { seatId, studentId });
         
         res.json({
             success: true,
@@ -350,13 +363,13 @@ app.delete('/api/admin/reservations', (req, res) => {
     reservations[currentSession] = {};
     updateStats();
     
-    io.emit('reservationUpdate', {
+    emitToClients('reservationUpdate', {
         session: currentSession,
         reservations: reservations[currentSession],
         stats: sessionStats[currentSession]
     });
     
-    io.emit('adminMessage', {
+    emitToClients('adminMessage', {
         type: 'info',
         message: '관리자가 모든 예약을 초기화했습니다.'
     });
@@ -448,7 +461,7 @@ app.delete('/api/admin/students/:studentId', async (req, res) => {
 app.post('/api/admin/maintenance', (req, res) => {
     isMaintenanceMode = !isMaintenanceMode;
     
-    io.emit('maintenanceMode', { enabled: isMaintenanceMode });
+    emitToClients('maintenanceMode', { enabled: isMaintenanceMode });
     
     res.json({
         success: true,
@@ -484,7 +497,7 @@ app.post('/api/admin/reset-session', (req, res) => {
     
     reservations[session] = {};
     
-    io.emit('sessionReset', { 
+    emitToClients('sessionReset', { 
         session,
         message: `${session === 'morning' ? '오전' : '오후'} 세션이 리셋되었습니다.`
     });
@@ -512,8 +525,9 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
-// Socket.IO 연결 처리
-io.on('connection', (socket) => {
+// Socket.IO 연결 처리 (개발환경에서만)
+if (io) {
+    io.on('connection', (socket) => {
     console.log('새로운 사용자 연결:', socket.id);
     
     // 사용자 온라인 상태 추가
@@ -543,7 +557,7 @@ io.on('connection', (socket) => {
         });
         
         // 다른 사용자들에게 온라인 사용자 수 업데이트
-        io.emit('onlineUsersUpdate', {
+        emitToClients('onlineUsersUpdate', {
             count: Object.keys(onlineUsers).length
         });
     });
@@ -592,11 +606,12 @@ io.on('connection', (socket) => {
         delete onlineUsers[socket.id];
         updateStats();
         
-        io.emit('onlineUsersUpdate', {
+        emitToClients('onlineUsersUpdate', {
             count: Object.keys(onlineUsers).length
         });
     });
 });
+}
 
 // 정적 파일 서빙
 app.get('/', (req, res) => {
@@ -617,7 +632,7 @@ setInterval(() => {
         reservations[newSession] = {};
         
         // 모든 클라이언트에게 세션 리셋 알림
-        io.emit('sessionReset', {
+        emitToClients('sessionReset', {
             session: newSession,
             message: `${newSession === 'morning' ? '오전' : '오후'} 세션이 시작되었습니다.`
         });
@@ -639,7 +654,7 @@ setInterval(() => {
     
     updateStats();
     
-    io.emit('onlineUsersUpdate', {
+    emitToClients('onlineUsersUpdate', {
         count: Object.keys(onlineUsers).length
     });
 }, 5 * 60 * 1000);
@@ -661,11 +676,13 @@ app.use((req, res) => {
     });
 });
 
-// 서버 시작
-server.listen(PORT, () => {
-    console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
-    console.log(`📱 웹사이트: http://localhost:${PORT}`);
-    console.log(`🔧 관리자 비밀번호: ${ADMIN_PASSWORD}`);
-});
+// 서버 시작 (Vercel 환경에서는 자동으로 처리됨)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    server.listen(PORT, () => {
+        console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
+        console.log(`📱 웹사이트: http://localhost:${PORT}`);
+        console.log(`🔧 관리자 비밀번호: ${ADMIN_PASSWORD}`);
+    });
+}
 
 module.exports = app;

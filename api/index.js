@@ -1,1 +1,1 @@
-module.exports = require('./serverless.js');
+module.exports = require('./src/server.js');

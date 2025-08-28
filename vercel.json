@@ -2,8 +2,12 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/serverless.js",
+      "src": "src/server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -16,11 +20,24 @@
       "dest": "/public/$1"
     },
     {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/reservations",
+      "dest": "/api/index.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/api/serverless.js"
+      "dest": "/src/server.js"
     }
   ],
   "env": {
     "NODE_ENV": "production"
+  },
+  "functions": {
+    "src/server.js": {
+      "maxDuration": 10
+    }
   }
 }
