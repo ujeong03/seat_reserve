@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="연구실 자리 예약 시스템 - 관리자 페이지">
+    <meta name="keywords" content="연구실, 자리예약, 관리자, 좌석관리">
+    <meta name="author" content="SCLab">
+    
+    <!-- PWA 매니페스트 -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+    
+    <title>관리자 페이지 - 연구실 자리 예약 시스템</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+    
+    <!-- Socket.IO 클라이언트 -->
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="admin-page">
+    <div class="container">
+        <header class="admin-header">
+            <h1>🔧 관리자 페이지</h1>
+            <div class="header-nav">
+                <a href="index.html" class="back-link">← 사용자 페이지로</a>
+                <button id="logout-btn" onclick="logout()" class="logout-btn">로그아웃</button>
+            </div>
+        </header>
+
+        <!-- 로그인 패널 -->
+        <div id="login-panel" class="login-panel">
+            <div class="login-form">
+                <h2>관리자 인증</h2>
+                <div class="input-group">
+                    <label for="admin-password">비밀번호:</label>
+                    <input type="password" id="admin-password" placeholder="관리자 비밀번호 입력" maxlength="20">
+                </div>
+                <button onclick="authenticateAdmin()" class="login-btn">로그인</button>
+                <div id="login-error" class="error-message hidden"></div>
+            </div>
+        </div>
+
+        <!-- 관리자 대시보드 -->
+        <div id="admin-dashboard" class="admin-dashboard hidden">
+            <!-- 연결 상태 -->
+            <div class="connection-status">
+                <div class="connection-indicator" id="connection-indicator"></div>
+                <span id="connection-text">서버 연결 중...</span>
+            </div>
+
+            <!-- 시간 정보 -->
+            <div class="time-info">
+                <div class="current-time">현재 시간: <span id="current-time"></span></div>
+                <div class="session-info">현재 세션: <span id="current-session"></span></div>
+                <div class="next-reset">다음 리셋: <span id="next-reset"></span></div>
+            </div>
+
+            <!-- 점검 모드 알림 -->
+            <div id="maintenance-notice" class="maintenance-notice hidden">
+                ⚠️ 현재 점검 모드가 활성화되어 있습니다.
+            </div>
+
+            <!-- 통계 대시보드 -->
+            <div class="stats-dashboard">
+                <div class="stat-card">
+                    <h3>점유율</h3>
+                    <div class="stat-value" id="occupancy-rate">0%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>예약된 좌석</h3>
+                    <div class="stat-value"><span id="occupied-seats">0</span>/13</div>
+                </div>
+                <div class="stat-card">
+                    <h3>온라인 사용자</h3>
+                    <div class="stat-value" id="online-users">0명</div>
+                </div>
+                <div class="stat-card">
+                    <h3>서버 상태</h3>
+                    <div class="stat-value server-status">정상</div>
+                </div>
+            </div>
+
+            <!-- 좌석 현황 -->
+            <div class="seat-overview">
+                <h3>좌석 현황</h3>
+                <div class="room-layout mini">
+                    <!-- 중앙 테이블 -->
+                    <div class="center-tables">
+                        <div class="table-group">
+                            <div class="seats-grid table-2x2">
+                                <div class="seat mini" data-seat="1">1</div>
+                                <div class="seat mini" data-seat="2">2</div>
+                                <div class="seat mini" data-seat="3">3</div>
+                                <div class="seat mini" data-seat="4">4</div>
+                            </div>
+                 
+                            <div class="seats-grid table-2x2">
+                                <div class="seat mini" data-seat="5">5</div>
+                                <div class="seat mini" data-seat="6">6</div>
+                                <div class="seat mini" data-seat="7">7</div>
+                                <div class="seat mini" data-seat="8">8</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 하단 테이블 -->
+                    <div class="bottom-table">
+                        <div class="seats-grid table-1x5">
+                            <div class="seat mini" data-seat="9">9</div>
+                            <div class="seat mini" data-seat="10">10</div>
+                            <div class="seat mini" data-seat="11">11</div>
+                            <div class="seat mini" data-seat="12">12</div>
+                            <div class="seat mini" data-seat="13">13</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 현재 예약자 목록 -->
+            <div class="reservations-list">
+                <h3>현재 예약자 목록</h3>
+                <div id="current-reservations" class="reservations-container">
+                    <p class="no-reservations">현재 예약이 없습니다.</p>
+                </div>
+            </div>
+
+            <!-- 관리자 액션 -->
+            <div class="admin-actions">
+                <h3>관리 작업</h3>
+                <div class="action-grid">
+                    <button onclick="clearAllReservations()" class="action-btn danger">
+                        🗑️ 전체 예약 초기화
+                    </button>
+                    <button onclick="forceSessionReset()" class="action-btn warning">
+                        🔄 세션 강제 변경
+                    </button>
+                    <button id="maintenance-btn" onclick="toggleMaintenanceMode()" class="action-btn">
+                        🔧 점검 모드
+                    </button>
+                    <button onclick="exportData()" class="action-btn info">
+                        📊 데이터 내보내기
+                    </button>
+                </div>
+            </div>
+
+            <!-- 학생 관리 -->
+            <div class="student-management">
+                <h3>학생 관리</h3>
+                
+                <!-- 학생 추가 -->
+                <div class="add-student-section">
+                    <h4>새 학생 추가</h4>
+                    <div class="add-student-form">
+                        <div class="input-group">
+                            <label for="new-student-id">학번:</label>
+                            <input type="text" id="new-student-id" placeholder="예: 2023001" maxlength="20">
+                        </div>
+                        <div class="input-group">
+                            <label for="new-student-name">이름:</label>
+                            <input type="text" id="new-student-name" placeholder="예: 홍길동" maxlength="20">
+                        </div>
+                        <button onclick="addStudent()" class="action-btn success">
+                            ➕ 학생 추가
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 학생 목록 -->
+                <div class="students-list-section">
+                    <h4>등록된 학생 목록</h4>
+                    <div class="students-controls">
+                        <button onclick="loadStudentsList()" class="action-btn">
+                            🔄 목록 새로고침
+                        </button>
+                        <div class="search-box">
+                            <input type="text" id="student-search" placeholder="학번 또는 이름으로 검색..." onkeyup="filterStudents()">
+                        </div>
+                    </div>
+                    <div id="students-list" class="students-list">
+                        <div class="loading">학생 목록을 불러오는 중...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 시스템 로그 -->
+            <div class="system-logs">
+                <h3>시스템 로그</h3>
+                <div id="log-container" class="log-container">
+                    <div class="log-entry">시스템이 시작되었습니다.</div>
+                </div>
+                <button onclick="clearLogs()" class="clear-logs-btn">로그 지우기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 관리자 스크립트 -->
+    <script src="admin.js"></script>
+</body>
+</html>

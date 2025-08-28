@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="연구실 자리를 효율적으로 관리하는 실시간 예약 시스템">
+    <meta name="keywords" content="연구실, 자리예약, 좌석관리, 실시간동기화">
+    <meta name="author" content="SCLab">
+    
+    <!-- PWA 매니페스트 -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- iOS 메타 태그 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="자리예약">
+    <link rel="apple-touch-icon" href="./icon-192x192.png">
+    
+    <!-- 안드로이드 메타 태그 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+    
+    <title>SCLAB SEAT BOOKING</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Socket.IO 클라이언트 -->
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SCLAB SEAT BOOKING</h1>
+            <div class="header-actions">
+                <a href="admin.html" class="admin-link">관리자 페이지</a>
+            </div>
+            <div class="time-info">
+                <div class="current-time">현재 시간: <span id="current-time"></span></div>
+                <div class="session-info">현재 세션: <span id="current-session"></span></div>
+                <div class="next-reset">다음 리셋: <span id="next-reset"></span></div>
+            </div>
+            <div class="connection-status">
+                <div class="connection-indicator" id="connection-indicator"></div>
+                <span id="connection-text">서버 연결 중...</span>
+                <span class="online-count">온라인 사용자: <span id="online-users">0</span>명</span>
+            </div>
+        </header>
+
+        <!-- 범례 (상단 배치) -->
+        <div class="legend-top">
+            <div class="legend-item">
+                <div class="seat-status available"></div>
+                <span>예약 가능</span>
+            </div>
+            <div class="legend-item">
+                <div class="seat-status occupied"></div>
+                <span>예약됨</span>
+            </div>
+            <div class="legend-item">
+                <div class="seat-status selected"></div>
+                <span>선택됨</span>
+            </div>
+        </div>
+
+        <!-- 점검 모드 알림 -->
+        <div id="maintenance-notice" class="maintenance-notice hidden">
+            ⚠️ 현재 점검 모드입니다. 예약 기능이 제한됩니다.
+        </div>
+
+        <div class="room-layout">
+            <!-- 창문 (위쪽) -->
+            <div class="window top-window">창문</div>
+            
+            <!-- 방 중앙의 2x2 배열 테이블 2개 -->
+            <div class="center-tables">
+                <div class="table-group" id="table-group-1">
+                    <div class="seats-grid table-2x2">
+                        <div class="seat" data-seat="1" tabindex="0" role="button" aria-label="1번 좌석">1</div>
+                        <div class="seat" data-seat="2" tabindex="0" role="button" aria-label="2번 좌석">2</div>
+                        <div class="seat" data-seat="3" tabindex="0" role="button" aria-label="3번 좌석">3</div>
+                        <div class="seat" data-seat="4" tabindex="0" role="button" aria-label="4번 좌석">4</div>
+                    </div>
+                </div>
+                
+                <div class="table-group" id="table-group-2">
+                    <div class="seats-grid table-2x2">
+                        <div class="seat" data-seat="5" tabindex="0" role="button" aria-label="5번 좌석">5</div>
+                        <div class="seat" data-seat="6" tabindex="0" role="button" aria-label="6번 좌석">6</div>
+                        <div class="seat" data-seat="7" tabindex="0" role="button" aria-label="7번 좌석">7</div>
+                        <div class="seat" data-seat="8" tabindex="0" role="button" aria-label="8번 좌석">8</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 방 아래쪽의 1x5 배열 -->
+            <div class="bottom-table">
+                <div class="seats-grid table-1x5">
+                    <div class="seat" data-seat="9" tabindex="0" role="button" aria-label="9번 좌석">9</div>
+                    <div class="seat" data-seat="10" tabindex="0" role="button" aria-label="10번 좌석">10</div>
+                    <div class="seat" data-seat="11" tabindex="0" role="button" aria-label="11번 좌석">11</div>
+                    <div class="seat" data-seat="12" tabindex="0" role="button" aria-label="12번 좌석">12</div>
+                    <div class="seat" data-seat="13" tabindex="0" role="button" aria-label="13번 좌석">13</div>
+                </div>
+            </div>
+
+            <!-- 창문 (오른쪽) -->
+            <div class="window right-window">창문</div>
+
+            <!-- 방문 (왼쪽 하단) -->
+            <div class="door">출입구</div>
+        </div>
+
+        <div class="controls">
+            <div class="user-input">
+                <label for="student-id">학번:</label>
+                <input type="text" id="student-id" placeholder="학번을 입력하세요 (예: 2021001)" maxlength="20" autocomplete="off">
+            </div>
+            
+            <div class="seat-info">
+                <div class="selected-seat">선택된 자리: <span id="selected-seat">없음</span></div>
+                <div class="seat-owner">예약자: <span id="seat-owner">-</span></div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="reserve-btn" onclick="reserveSeat()" disabled>예약하기</button>
+                <button id="cancel-btn" onclick="cancelReservation()" disabled>예약 취소</button>
+            </div>
+        </div>
+
+        <footer>
+            <div class="version-info">
+                <p>실습실 좌석 예약 시스템 v2.0 (Node.js + Socket.IO)</p>
+                <p>실시간 동기화 지원 • PWA 지원 • 반응형 디자인</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 클라이언트 스크립트 -->
+    <script src="user.js"></script>
+</body>
+</html>
