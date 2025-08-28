@@ -8,13 +8,24 @@ class Database {
     }
 
     init() {
-        const dbPath = path.join(__dirname, '..', 'data', 'students.db');
+        // Vercel 환경에서는 in-memory 데이터베이스 사용
+        const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
+        let dbPath;
         
-        // data 디렉토리가 없으면 생성
-        const fs = require('fs');
-        const dataDir = path.dirname(dbPath);
-        if (!fs.existsSync(dataDir)) {
-            fs.mkdirSync(dataDir, { recursive: true });
+        if (isVercel) {
+            // Vercel에서는 메모리 데이터베이스 사용
+            dbPath = ':memory:';
+            console.log('📦 Vercel 환경: 메모리 데이터베이스 사용');
+        } else {
+            // 로컬 환경에서는 파일 데이터베이스 사용
+            dbPath = path.join(__dirname, '..', 'data', 'students.db');
+            
+            // data 디렉토리가 없으면 생성
+            const fs = require('fs');
+            const dataDir = path.dirname(dbPath);
+            if (!fs.existsSync(dataDir)) {
+                fs.mkdirSync(dataDir, { recursive: true });
+            }
         }
 
         this.db = new sqlite3.Database(dbPath, (err) => {
