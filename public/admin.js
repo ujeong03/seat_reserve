@@ -52,9 +52,20 @@ function closeNavMenu() {
 
 // 관리자 앱 초기화
 function initializeAdminApp() {
+    // 세션 만료 확인 (30분)
+    const adminLoginTime = localStorage.getItem('adminLoginTime');
+    const now = new Date().getTime();
+    const sessionDuration = 30 * 60 * 1000; // 30분
+    
+    if (adminLoginTime && (now - parseInt(adminLoginTime)) > sessionDuration) {
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('adminLoginTime');
+        showNotification('보안상 관리자 세션이 만료되었습니다.', 'warning');
+    }
+    
     // 로그인 상태 확인
     const savedAdminState = localStorage.getItem('adminLoggedIn');
-    if (savedAdminState === 'true') {
+    if (savedAdminState === 'true' && adminLoginTime) {
         showDashboard();
     } else {
         showLoginPanel();
@@ -67,6 +78,9 @@ function initializeAdminApp() {
     setInterval(updateTimeDisplay, 1000);
     setInterval(updateCurrentSession, 60000);
     
+    // 세션 만료 체크 (5분마다)
+    setInterval(checkSessionExpiry, 5 * 60 * 1000);
+    
     // Enter 키로 로그인
     document.getElementById('admin-password').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
@@ -78,6 +92,20 @@ function initializeAdminApp() {
     initializeSeatClickEvents();
     
     debugLog('관리자 앱이 초기화되었습니다.');
+}
+
+// 세션 만료 체크
+function checkSessionExpiry() {
+    const adminLoginTime = localStorage.getItem('adminLoginTime');
+    if (!adminLoginTime) return;
+    
+    const now = new Date().getTime();
+    const sessionDuration = 30 * 60 * 1000; // 30분
+    
+    if ((now - parseInt(adminLoginTime)) > sessionDuration) {
+        logout();
+        showNotification('보안상 관리자 세션이 만료되었습니다. 다시 로그인해주세요.', 'warning');
+    }
 }
 
 // Socket.IO 초기화 (관리자 전용) - Vercel 환경에서는 폴링 모드 사용
@@ -222,6 +250,7 @@ async function authenticateAdmin() {
         
         if (data.success) {
             localStorage.setItem('adminLoggedIn', 'true');
+            localStorage.setItem('adminLoginTime', new Date().getTime().toString());
             document.getElementById('admin-password').value = '';
             errorElement.classList.add('hidden');
             showDashboard();
@@ -250,6 +279,7 @@ function showLoginError(message) {
 // 로그아웃
 function logout() {
     localStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('adminLoginTime');
     isAdmin = false;
     
     if (socket) {
@@ -259,6 +289,11 @@ function logout() {
     
     showLoginPanel();
     showNotification('로그아웃되었습니다.', 'info');
+}
+
+// 로그인 취소 (홈으로 이동)
+function cancelLogin() {
+    window.location.href = 'index.html';
 }
 
 // 초기 데이터 로드

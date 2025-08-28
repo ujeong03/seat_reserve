@@ -139,7 +139,7 @@ function initializeSocket() {
     
     // 예약 관련 이벤트
     socket.on('reservation-success', (data) => {
-        showSuccess(`${data.seatId}번 좌석이 예약되었습니다.`);
+        showSuccess(t('reservationSuccess'));
     });
     
     socket.on('reservation-error', (error) => {
@@ -147,7 +147,7 @@ function initializeSocket() {
     });
     
     socket.on('cancellation-success', (data) => {
-        showSuccess(`${data.seatId}번 좌석 예약이 취소되었습니다.`);
+        showSuccess(t('cancellationSuccess'));
         
         // 예약 취소 성공 후 잠시 후 페이지 새로고침
         setTimeout(() => {
@@ -317,12 +317,12 @@ function selectSeat(seatId) {
 // 좌석 예약
 async function reserveSeat() {
     if (!currentUser || !selectedSeat) {
-        showNotification('학번을 입력하고 좌석을 선택해주세요.', 'error');
+        showNotification(t('selectSeatFirst'), 'error');
         return;
     }
     
     if (isMaintenanceMode) {
-        showNotification('점검 모드 중에는 예약할 수 없습니다.', 'error');
+        showNotification(t('maintenanceNotice'), 'error');
         return;
     }
     
@@ -336,7 +336,7 @@ async function reserveSeat() {
         });
         
         if (result.success) {
-            showSuccess(result.message || `좌석 ${selectedSeat}이 예약되었습니다.`);
+            showSuccess(result.message || t('reservationSuccess'));
             
             // 예약 성공 후 즉시 업데이트 (폴링 모드) 또는 페이지 새로고침
             setTimeout(() => {
@@ -350,20 +350,20 @@ async function reserveSeat() {
         
         debugLog(`좌석 ${selectedSeat} 예약 요청을 보냈습니다.`);
     } catch (error) {
-        handleError(error, '예약에 실패했습니다.');
+        handleError(error, t('reservationFailed'));
     }
 }
 
 // 예약 취소
 async function cancelReservation() {
     if (!currentUser || !selectedSeat) {
-        showNotification('학번을 입력하고 좌석을 선택해주세요.', 'error');
+        showNotification(t('selectSeatFirst'), 'error');
         return;
     }
     
     // 서버에서 학번 확인을 하므로 클라이언트에서는 간단한 확인만
     if (!reservations[selectedSeat]) {
-        showNotification('예약이 없는 좌석입니다.', 'error');
+        showNotification(t('alreadyReserved'), 'error');
         return;
     }
     
@@ -376,7 +376,7 @@ async function cancelReservation() {
         });
         
         if (result.success) {
-            showSuccess(`${selectedSeat}번 좌석 예약이 취소되었습니다.`);
+            showSuccess(t('cancellationSuccess'));
             
             // 취소 성공 후 즉시 업데이트 (폴링 모드) 또는 페이지 새로고침
             setTimeout(() => {
@@ -686,7 +686,7 @@ async function attemptReconnection() {
         const delay = baseDelay * Math.pow(2, attempts - 1); // 지수 백오프
         
         debugLog(`Reconnection attempt ${attempts}/${maxAttempts} in ${delay}ms`);
-        showNotification(`재연결 시도 중... (${attempts}/${maxAttempts})`, 'info', 2000);
+        showNotification(`${t('serverConnecting')} (${attempts}/${maxAttempts})`, 'info', 2000);
         
         await new Promise(resolve => setTimeout(resolve, delay));
         
@@ -704,14 +704,14 @@ async function attemptReconnection() {
                 });
             });
             
-            showNotification('서버에 다시 연결되었습니다!', 'success');
+            showNotification(t('serverConnected'), 'success');
             return true;
         } catch (error) {
             debugLog(`Reconnection attempt ${attempts} failed:`, error);
         }
     }
     
-    showNotification('서버 연결에 실패했습니다. 페이지를 새로고침해주세요.', 'error', 10000);
+    showNotification(t('networkError'), 'error', 10000);
     return false;
 }
 
@@ -779,10 +779,10 @@ function showNotification(message, type = 'info', duration = 3000) {
 }
 
 // 에러 처리 함수
-function handleError(error, defaultMessage = '오류가 발생했습니다.') {
+function handleError(error, defaultMessage = null) {
     console.error('Error:', error);
     
-    let message = defaultMessage;
+    let message = defaultMessage || t('networkError');
     if (error.message) {
         message = error.message;
     } else if (typeof error === 'string') {

@@ -29,6 +29,9 @@
     
     <!-- Socket.IO 클라이언트 -->
     <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- 다국어 지원 -->
+    <script src="i18n.js"></script>
 </head>
 <body>
     <div class="container">
@@ -47,6 +50,10 @@
                 <div class="nav-menu" id="nav-menu">
                     <a href="#" class="nav-item" id="home-link">🏠 홈</a>
                     <a href="admin.html" class="nav-item">⚙️ 관리자</a>
+                    <div class="language-selector">
+                        <button class="lang-btn active" id="lang-ko" onclick="changeLanguage('ko')">한국어</button>
+                        <button class="lang-btn" id="lang-en" onclick="changeLanguage('en')">English</button>
+                    </div>
                 </div>
 
                 <div class="nav-brand">SCLAB SEAT BOOKING</div>
@@ -71,15 +78,15 @@
         <div class="legend-top">
             <div class="legend-item">
                 <div class="seat-status available"></div>
-                <span>예약 가능</span>
+                <span>Available</span>
             </div>
             <div class="legend-item">
                 <div class="seat-status occupied"></div>
-                <span>예약됨</span>
+                <span>Occupied</span>
             </div>
             <div class="legend-item">
                 <div class="seat-status selected"></div>
-                <span>선택됨</span>
+                <span>Selected</span>
             </div>
         </div>
 
@@ -90,7 +97,7 @@
 
         <div class="room-layout">
             <!-- 창문 (위쪽) -->
-            <div class="window top-window">창문</div>
+            <div class="window top-window">window</div>
             
             <!-- 방 중앙의 2x2 배열 테이블 2개 -->
             <div class="center-tables">
@@ -116,7 +123,7 @@
             <!-- 방 아래쪽의 1x5 배열과 출입구 -->
             <div class="bottom-area">
                 <!-- 방문 (왼쪽) -->
-                <div class="door">출입구</div>
+                <div class="door">door</div>
                 
                 <!-- 1x5 좌석 (오른쪽) -->
                 <div class="bottom-table">
@@ -131,30 +138,29 @@
             </div>
 
             <!-- 창문 (오른쪽) -->
-            <div class="window right-window">창문</div>
+            <div class="window right-window">window</div>
         </div>
 
         <div class="controls">
             <div class="user-input">
-                <label for="student-id">학번:</label>
-                <input type="text" id="student-id" placeholder="학번을 입력하세요 (예: 2021001)" maxlength="20" autocomplete="off">
+                <label for="student-id">Student Id:</label>
+                <input type="text" id="student-id" placeholder="enter your student id" maxlength="20" autocomplete="off">
             </div>
             
             <div class="seat-info">
-                <div class="selected-seat">선택된 자리: <span id="selected-seat">없음</span></div>
-                <div class="seat-owner">예약자: <span id="seat-owner">-</span></div>
+                <div class="selected-seat">Selected Seat: <span id="selected-seat">None</span></div>
+                <div class="seat-owner">Reserved By: <span id="seat-owner">-</span></div>
             </div>
             
             <div class="action-buttons">
-                <button id="reserve-btn" onclick="reserveSeat()" disabled>예약하기</button>
-                <button id="cancel-btn" onclick="cancelReservation()" disabled>예약 취소</button>
+                <button id="reserve-btn" onclick="reserveSeat()" disabled>Reserve</button>
+                <button id="cancel-btn" onclick="cancelReservation()" disabled>Cancel Reservation</button>
             </div>
         </div>
 
         <footer>
             <div class="version-info">
-                <p>실습실 좌석 예약 시스템 v2.0 (Node.js + Socket.IO)</p>
-                <p>실시간 동기화 지원 • PWA 지원 • 반응형 디자인</p>
+                <p>SCLab Seat Reservation System v2.0 (2025.08)</p>
             </div>
         </footer>
     </div>

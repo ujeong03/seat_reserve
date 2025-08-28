@@ -64,6 +64,31 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     max-width: 400px;
     width: 90%;
+    position: relative;
+}
+
+.close-login-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.close-login-btn:hover {
+    background: #f5f5f5;
+    color: #666;
 }
 
 .login-form h2 {
@@ -410,7 +435,24 @@
     }
     
     .action-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .action-btn {
+        padding: 12px 8px;
+        font-size: 12px;
+    }
+    
+    .seat-overview {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        padding: 20px 15px;
+    }
+    
+    .room-layout.mini {
+        transform: scale(0.6);
+        margin-top: 10px;
     }
     
     .login-form {
