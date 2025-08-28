@@ -1,15 +1,27 @@
-# 🚂 Railway 배포 가이드
+# 🚂 Railway 자동 배포 가이드 (GitHub 연동)
 
-Railway를 사용하여 실시간 좌석 예약 시스템을 배포합니다.
+GitHub에 푸시하면 자동으로 Railway에 배포되는 시스템을 구축합니다.
 
-## ✨ Railway 선택 이유
+## ✨ GitHub → Railway 자동 배포의 장점
 
-- ✅ **Socket.IO 완벽 지원** - 실시간 동기화
-- ✅ **SQLite 파일 저장** - 데이터 지속성
-- ✅ **Node.js 최적화** - 빠른 배포
-- ✅ **무료 플랜** - 월 500시간 제공
-- ✅ **자동 HTTPS** - 보안 연결
-- ✅ **GitHub 연동** - 자동 재배포
+- 🔄 **자동 재배포** - GitHub에 푸시하면 즉시 반영
+- 🔒 **안전한 배포** - 환경 변수로 민감 정보 보호
+- 📊 **배포 히스토리** - 모든 배포 기록 추적
+- 🚀 **빠른 롤백** - 문제 시 이전 버전으로 즉시 복구
+- ✅ **Socket.IO 완벽 지원** - 실시간 기능 완전 활성화
+- 💾 **SQLite 파일 저장** - 데이터 지속성 보장
+
+## 🔒 **보안 설정 완료 상태**
+
+✅ **GitHub 보안**:
+- 데이터베이스 파일 (*.db) 완전 제외
+- 환경 설정 파일 (.env) 완전 제외
+- 백업 파일 및 민감 데이터 완전 제외
+
+✅ **Railway 보안**:
+- 환경 변수로 민감 정보 관리
+- HTTPS 자동 적용
+- 강화된 관리자 비밀번호
 
 ## 🚀 **배포 단계**
 
@@ -24,20 +36,65 @@ Railway를 사용하여 실시간 좌석 예약 시스템을 배포합니다.
 3. **`seat_reserve`** 저장소 선택
 4. **"Deploy Now"** 클릭
 
-### 3단계: 환경변수 설정
+### 3단계: 환경변수 설정 (필수!)
 **"Variables"** 탭에서 다음 변수들을 추가:
 
 ```
 NODE_ENV=production
-ADMIN_PASSWORD=강력한_비밀번호_여기에_입력
+PORT=3000
+ADMIN_PASSWORD=SecureAdminPass2025!
 ```
 
-**⚠️ 주의**: `ADMIN_PASSWORD`는 반드시 강력한 비밀번호로 설정하세요!
+**🔐 보안 주의사항**:
+- `ADMIN_PASSWORD`는 반드시 강력한 비밀번호로 변경하세요
+- 대문자, 소문자, 숫자, 특수문자 조합 권장
+- 최소 12자 이상 권장
+
+### 4단계: 자동 재배포 설정
+1. **"Settings"** 탭 클릭
+2. **"Service"** 섹션에서 확인:
+   - ✅ **Auto Deploy**: `Enabled`
+   - ✅ **Source**: `GitHub - ujeong03/seat_reserve`
+   - ✅ **Branch**: `master`
+
+이제 GitHub에 푸시할 때마다 자동으로 재배포됩니다! 🎉
 
 ### 4단계: 배포 완료 확인
 1. **"Deployments"** 탭에서 진행 상황 확인
 2. ✅ 녹색 체크마크 확인
 3. **"Settings" → "Domains"**에서 URL 확인
+
+## 🔄 **개발 워크플로우**
+
+### 로컬 개발 → GitHub → Railway 자동 배포
+
+```bash
+# 1. 로컬에서 개발 및 테스트
+npm start
+# http://localhost:3000에서 테스트
+
+# 2. GitHub에 푸시
+git add .
+git commit -m "새로운 기능 추가"
+git push origin master
+
+# 3. Railway에서 자동 재배포 확인
+# Railway 대시보드에서 배포 진행 상황 실시간 확인
+```
+
+### 🚀 **즉시 배포 명령어**
+
+현재 변경사항을 바로 배포하려면:
+
+```bash
+git add . && git commit -m "즉시 배포: $(date)" && git push origin master
+```
+
+## 📊 **배포 모니터링**
+
+1. **Railway 대시보드**: 실시간 배포 상태 확인
+2. **GitHub Actions**: 푸시 히스토리 확인  
+3. **실시간 로그**: Railway에서 서버 로그 실시간 확인
 
 ## 🌐 **배포 후 접속**
 
