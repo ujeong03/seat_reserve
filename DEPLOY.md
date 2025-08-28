@@ -1,69 +1,102 @@
-# 🚀 배포 가이드
+# 🚂 Railway 배포 가이드
 
-## ⚠️ 중요: 배포 방법 선택
+Railway를 사용하여 실시간 좌석 예약 시스템을 배포합니다.
 
-현재 앱은 Socket.IO + SQLite를 사용하므로 **Vercel 서버리스 환경과 호환되지 않습니다**.
+## ✨ Railway 선택 이유
 
-## 🎯 **추천 방법: Railway 배포**
+- ✅ **Socket.IO 완벽 지원** - 실시간 동기화
+- ✅ **SQLite 파일 저장** - 데이터 지속성
+- ✅ **Node.js 최적화** - 빠른 배포
+- ✅ **무료 플랜** - 월 500시간 제공
+- ✅ **자동 HTTPS** - 보안 연결
+- ✅ **GitHub 연동** - 자동 재배포
 
-Railway는 Node.js + Socket.IO + SQLite를 완벽 지원합니다.
+## 🚀 **배포 단계**
 
-### Railway 배포 단계:
+### 1단계: Railway 계정 생성
+1. **https://railway.app** 접속
+2. **"Login with GitHub"** 클릭
+3. GitHub 계정으로 로그인
 
-1. **Railway 계정 생성**: https://railway.app
-2. **GitHub로 로그인**
-3. **"New Project" 클릭**
-4. **GitHub 저장소 선택**: `sclab_seatmap`
-5. **프로젝트 설정**:
-   - Framework Preset: **Other**
-   - Root Directory: **/** (기본값)
-   - Build Command: 비워둠
-   - Output Directory: 비워둠
-   - Install Command: `npm install`
+### 2단계: 프로젝트 배포
+1. **"New Project"** 클릭
+2. **"Deploy from GitHub repo"** 선택
+3. **`seat_reserve`** 저장소 선택
+4. **"Deploy Now"** 클릭
 
-### 3. 환경변수 설정
-
-Vercel 대시보드에서 다음 환경변수들을 설정하세요:
+### 3단계: 환경변수 설정
+**"Variables"** 탭에서 다음 변수들을 추가:
 
 ```
 NODE_ENV=production
-ADMIN_PASSWORD=your_secure_password_here
-CORS_ORIGIN=https://your-project-name.vercel.app
-PORT=3000
+ADMIN_PASSWORD=강력한_비밀번호_여기에_입력
 ```
 
-**⚠️ 중요**: `ADMIN_PASSWORD`는 반드시 강력한 비밀번호로 설정하세요!
+**⚠️ 주의**: `ADMIN_PASSWORD`는 반드시 강력한 비밀번호로 설정하세요!
 
-### 4. 배포 완료 후 테스트
+### 4단계: 배포 완료 확인
+1. **"Deployments"** 탭에서 진행 상황 확인
+2. ✅ 녹색 체크마크 확인
+3. **"Settings" → "Domains"**에서 URL 확인
 
-✅ **기본 기능 테스트**
-- [ ] 메인 페이지 (`https://your-project.vercel.app`) 접속
-- [ ] 좌석 선택 및 예약 기능
-- [ ] 관리자 페이지 (`/admin.html`) 접속
-- [ ] 실시간 동기화 확인
+## 🌐 **배포 후 접속**
 
-✅ **모바일 테스트**
-- [ ] 모바일에서 접속 확인
-- [ ] 반응형 디자인 확인
+- **사용자 페이지**: `https://your-app.up.railway.app`
+- **관리자 페이지**: `https://your-app.up.railway.app/admin.html`
 
-## 🛠️ 문제 해결
+## 👥 **테스트 계정**
 
-### 배포 실패 시
-1. Vercel 대시보드의 "Functions" 탭에서 로그 확인
-2. `vercel.json` 설정 확인
-3. 환경변수 설정 확인
+다음 학번으로 테스트할 수 있습니다:
+- `20241001` - 김철수
+- `20241002` - 이영희
+- `20241003` - 박민수
+- `20241004` - 정수진
+- `20241005` - 장하나
 
-### SQLite 관련 이슈
-- Vercel은 서버리스 환경이므로 데이터는 매 배포시 초기화됩니다
-- 영구적인 데이터 저장이 필요하다면 외부 데이터베이스 서비스 사용을 권장합니다
+## ✅ **기능 테스트**
 
-### CORS 오류 시
-- `CORS_ORIGIN` 환경변수에 실제 배포 도메인을 정확히 설정했는지 확인
-- 예: `https://my-seat-app.vercel.app`
+### 기본 기능
+- [ ] 메인 페이지 로딩
+- [ ] 좌석 선택 및 예약
+- [ ] 실시간 동기화 (다른 탭에서 변경사항 즉시 반영)
+- [ ] 예약 취소
 
-## 📞 지원
+### 관리자 기능
+- [ ] 관리자 페이지 로그인
+- [ ] 실시간 예약 모니터링
+- [ ] 학생 목록 관리
+- [ ] 전체 예약 초기화
 
-배포 중 문제가 발생하면 Vercel 공식 문서를 참고하거나 GitHub Issues를 확인하세요.
+### 모바일 테스트
+- [ ] 모바일 브라우저 접속
+- [ ] 반응형 레이아웃 확인
+
+## 🔧 **문제 해결**
+
+### 배포 실패시
+1. **"Deployments" → "View Logs"**에서 오류 확인
+2. 환경변수 설정 재확인
+3. GitHub 저장소 동기화 상태 확인
+
+### 일반적인 오류
+- **포트 에러**: Railway가 자동으로 포트 할당
+- **권한 에러**: GitHub 저장소 접근 권한 확인
+- **빌드 에러**: `package.json` 의존성 확인
+
+## 💰 **비용**
+
+**무료 플랜**: 월 500시간 사용 가능
+- 대부분의 개인/학교 프로젝트에 충분
+- 추가 사용시 사용량에 따라 과금
+
+## 🎉 **완료!**
+
+이제 전 세계 어디서나 접속 가능한 실시간 좌석 예약 시스템이 완성되었습니다!
+
+**추가 팁:**
+- GitHub에 코드 변경시 자동으로 재배포됩니다
+- 커스텀 도메인 연결 가능
+- 로그는 Railway 대시보드에서 실시간 확인 가능
 
 ---
-**추천**: 실시간 기능이 중요하다면 **Railway 사용**을 강력히 권장합니다!
+**Railway 배포 전용 가이드** | 마지막 업데이트: 2025년 8월

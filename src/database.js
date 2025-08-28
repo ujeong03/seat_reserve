@@ -9,15 +9,10 @@ class Database {
 
     init() {
         // 환경 감지
-        const isVercel = process.env.VERCEL || process.env.VERCEL_ENV;
         const isRailway = process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_ENVIRONMENT_NAME;
         let dbPath;
         
-        if (isVercel) {
-            // Vercel에서는 메모리 데이터베이스 사용
-            dbPath = ':memory:';
-            console.log('📦 Vercel 환경: 메모리 데이터베이스 사용');
-        } else if (isRailway) {
+        if (isRailway) {
             // Railway에서는 프로젝트 루트의 db 파일 사용
             dbPath = path.join(process.cwd(), 'students.db');
             console.log('🚂 Railway 환경: 파일 데이터베이스 사용');

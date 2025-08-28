@@ -68,9 +68,6 @@ Thumbs.db
 tmp/
 temp/
 
-# Vercel
-.vercel
-
 # Build outputs
 dist/
 build/
