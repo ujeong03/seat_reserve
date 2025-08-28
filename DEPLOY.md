@@ -23,13 +23,13 @@ Railway는 Node.js + Socket.IO + SQLite를 완벽 지원합니다.
 
 ### 3. 환경변수 설정
 
-Vercel 대시보드에서 다음 환경변수들을 설정하세요:
+Railway 대시보드에서 다음 환경변수들을 설정하세요:
 
 ```
 NODE_ENV=production
 ADMIN_PASSWORD=your_secure_password_here
-CORS_ORIGIN=https://your-project-name.vercel.app
-PORT=3000
+CORS_ORIGIN=https://your-project-name.railway.app
+PORT=$PORT
 ```
 
 **⚠️ 중요**: `ADMIN_PASSWORD`는 반드시 강력한 비밀번호로 설정하세요!
@@ -37,7 +37,7 @@ PORT=3000
 ### 4. 배포 완료 후 테스트
 
 ✅ **기본 기능 테스트**
-- [ ] 메인 페이지 (`https://your-project.vercel.app`) 접속
+- [ ] 메인 페이지 (`https://your-project.railway.app`) 접속
 - [ ] 좌석 선택 및 예약 기능
 - [ ] 관리자 페이지 (`/admin.html`) 접속
 - [ ] 실시간 동기화 확인
@@ -63,7 +63,7 @@ PORT=3000
 
 ## 📞 지원
 
-배포 중 문제가 발생하면 Vercel 공식 문서를 참고하거나 GitHub Issues를 확인하세요.
+배포 중 문제가 발생하면 Railway 공식 문서를 참고하거나 GitHub Issues를 확인하세요.
 
 ---
 **추천**: 실시간 기능이 중요하다면 **Railway 사용**을 강력히 권장합니다!
