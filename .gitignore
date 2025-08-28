@@ -46,6 +46,12 @@ jspm_packages/
 # dotenv environment variables file
 .env
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+data/
+
 # VS Code
 .vscode/
 
@@ -61,3 +67,10 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Vercel
+.vercel
+
+# Build outputs
+dist/
+build/

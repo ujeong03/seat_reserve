@@ -19,8 +19,11 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
+        origin: NODE_ENV === 'production' 
+            ? [process.env.CORS_ORIGIN || "*"] 
+            : "*",
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
@@ -34,7 +37,12 @@ app.use(helmet({
     contentSecurityPolicy: false // 개발 환경에서는 비활성화
 }));
 app.use(compression());
-app.use(cors());
+app.use(cors({
+    origin: NODE_ENV === 'production' 
+        ? [process.env.CORS_ORIGIN || "*"]
+        : ["http://localhost:3000", "http://127.0.0.1:3000"],
+    credentials: true
+}));
 app.use(express.json());
 // 정적 파일 제공 (public 폴더만)
 app.use(express.static(path.join(__dirname, '..', 'public')));
