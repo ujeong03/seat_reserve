@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const isVercel = process.env.VERCEL || process.env.VERCEL_ENV; // Vercel 환경 감지
-const isRailway = process.env.RAILWAY_ENVIRONMENT; // Railway 환경 감지
+const isRailway = process.env.RAILWAY_ENVIRONMENT_ID || process.env.RAILWAY_PROJECT_ID; // Railway 환경 감지
 
 // 데이터베이스 초기화
 const db = new Database();
@@ -681,11 +681,15 @@ app.use((req, res) => {
 });
 
 // 서버 시작 (Vercel 환경에서는 자동으로 처리됨)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+if (!isVercel) {
     server.listen(PORT, () => {
         console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
         console.log(`📱 웹사이트: http://localhost:${PORT}`);
         console.log(`🔧 관리자 비밀번호: ${ADMIN_PASSWORD}`);
+        console.log(`🏗️ 환경: ${NODE_ENV}`);
+        if (isRailway) {
+            console.log(`🚂 Railway 환경에서 실행 중`);
+        }
     });
 }
 
