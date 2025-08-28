@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/server.js",
+      "src": "api/serverless.js",
       "use": "@vercel/node"
     }
   ],
@@ -17,15 +17,10 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/src/server.js"
+      "dest": "/api/serverless.js"
     }
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "src/server.js": {
-      "maxDuration": 10
-    }
   }
 }
