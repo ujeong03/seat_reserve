@@ -16,7 +16,8 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const NODE_ENV = process.env.NODE_ENV || 'development';
-const isVercelProduction = process.env.VERCEL || NODE_ENV === 'production';
+const isVercel = process.env.VERCEL || process.env.VERCEL_ENV; // Vercel 환경 감지
+const isRailway = process.env.RAILWAY_ENVIRONMENT; // Railway 환경 감지
 
 // 데이터베이스 초기화
 const db = new Database();
@@ -24,9 +25,9 @@ const db = new Database();
 const app = express();
 const server = http.createServer(app);
 
-// Socket.IO는 개발환경에서만 사용 (Vercel에서는 비활성화)
+// Socket.IO는 Vercel이 아닌 환경에서만 사용
 let io = null;
-if (!isVercelProduction) {
+if (!isVercel) {
     io = socketIo(server, {
         cors: {
             origin: NODE_ENV === 'production' 
@@ -36,12 +37,15 @@ if (!isVercelProduction) {
             credentials: true
         }
     });
+    console.log('✅ Socket.IO 활성화됨');
+} else {
+    console.log('⚠️ Vercel 환경 - Socket.IO 비활성화됨');
 }
 
 // Socket.IO 이벤트 발송 헬퍼 (Vercel에서는 무시)
 function emitToClients(event, data) {
     if (io) {
-        emitToClients(event, data);
+        io.emit(event, data);
     }
 }
 

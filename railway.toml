@@ -1,0 +1,5 @@
+# Railway 배포 설정
+# 이 파일이 존재하면 Railway가 Node.js 앱으로 인식합니다
+
+PORT=$PORT
+NODE_ENV=production
