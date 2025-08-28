@@ -680,13 +680,26 @@ app.use((req, res) => {
     });
 });
 
-// 서버 시작 (Vercel 환경에서는 자동으로 처리됨)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-    server.listen(PORT, () => {
-        console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
-        console.log(`📱 웹사이트: http://localhost:${PORT}`);
+// 서버 시작
+const startServer = () => {
+    const actualPort = PORT || 3000;
+    server.listen(actualPort, '0.0.0.0', () => {
+        console.log(`🚀 서버가 포트 ${actualPort}에서 실행 중입니다.`);
+        if (isRailway) {
+            console.log(`� Railway 환경에서 실행 중`);
+        } else if (isVercel) {
+            console.log(`📦 Vercel 환경에서 실행 중`);
+        } else {
+            console.log(`💻 로컬 환경에서 실행 중`);
+            console.log(`�📱 웹사이트: http://localhost:${actualPort}`);
+        }
         console.log(`🔧 관리자 비밀번호: ${ADMIN_PASSWORD}`);
     });
+};
+
+// Vercel이 아닌 환경에서만 서버 시작
+if (!isVercel) {
+    startServer();
 }
 
 module.exports = app;
