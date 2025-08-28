@@ -333,32 +333,41 @@ app.delete('/reservations/:seatId', async (req, res) => {
     }
     
     try {
-        // 학번이 데이터베이스에 존재하는지 확인
-        const student = await db.getStudentById(studentId);
-        if (!student) {
-            return res.status(400).json({
-                success: false,
-                message: '등록되지 않은 학번입니다. 학번을 다시 확인해주세요.'
-            });
+        // 관리자 취소인지 확인
+        const isAdminCancel = studentId === 'admin-cancel';
+        
+        if (!isAdminCancel) {
+            // 일반 사용자 취소인 경우 학번 검증
+            const student = await db.getStudentById(studentId);
+            if (!student) {
+                return res.status(400).json({
+                    success: false,
+                    message: '등록되지 않은 학번입니다. 학번을 다시 확인해주세요.'
+                });
+            }
+            
+            // 예약된 학번과 입력한 학번이 일치하는지 확인
+            if (reservations[currentSession][seatId].studentId !== studentId) {
+                return res.status(403).json({
+                    success: false,
+                    message: '본인이 예약한 자리만 취소할 수 있습니다.'
+                });
+            }
         }
         
-        // 예약된 학번과 입력한 학번이 일치하는지 확인
-        if (reservations[currentSession][seatId].studentId !== studentId) {
-            return res.status(403).json({
-                success: false,
-                message: '본인이 예약한 자리만 취소할 수 있습니다.'
-            });
-        }
-        
+        const canceledReservation = reservations[currentSession][seatId];
         delete reservations[currentSession][seatId];
         updateStats();
         
-        console.log(`예약 취소 - 좌석: ${seatId}, 학번: ${studentId}`);
+        console.log(`예약 취소 - 좌석: ${seatId}, ${isAdminCancel ? '관리자 취소' : `학번: ${studentId}`}`);
         
-        // 클라이언트에는 이름만 전송
+        // 클라이언트에는 이름과 지정 여부만 전송
         const clientReservations = {};
         for (let seat in reservations[currentSession]) {
-            clientReservations[seat] = reservations[currentSession][seat].name;
+            clientReservations[seat] = {
+                name: reservations[currentSession][seat].name,
+                isAssigned: reservations[currentSession][seat].isAssigned || false
+            };
         }
         
         emitToClients('reservations-updated', clientReservations);

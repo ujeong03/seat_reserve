@@ -74,6 +74,9 @@ function initializeAdminApp() {
         }
     });
     
+    // 좌석 클릭 이벤트 등록
+    initializeSeatClickEvents();
+    
     debugLog('관리자 앱이 초기화되었습니다.');
 }
 
@@ -287,6 +290,25 @@ async function loadInitialData() {
     }
 }
 
+// 예약 데이터만 다시 로드
+async function loadReservations() {
+    try {
+        const reservationsResponse = await fetch('/reservations');
+        const reservationsData = await reservationsResponse.json();
+        reservations = reservationsData.reservations || {};
+        
+        // UI 업데이트
+        updateSeatDisplay();
+        updateReservationStats();
+        updateCurrentReservationsList();
+        
+        debugLog('예약 데이터 새로고침 완료');
+    } catch (error) {
+        console.error('예약 데이터 로드 실패:', error);
+        addLog(`예약 데이터 로드 실패: ${error.message}`, 'error');
+    }
+}
+
 // API 호출 헬퍼 함수
 async function apiCall(url, options = {}) {
     try {
@@ -340,6 +362,66 @@ function updateSeatDisplay() {
             seat.title = `${seatId}번 - 예약 가능`;
         }
     });
+    
+    // 좌석 클릭 이벤트 다시 등록
+    initializeSeatClickEvents();
+}
+
+// 좌석 클릭 이벤트 초기화
+function initializeSeatClickEvents() {
+    document.querySelectorAll('.seat.mini').forEach(seat => {
+        // 기존 이벤트 리스너 제거
+        seat.removeEventListener('click', seat._clickHandler);
+        
+        // 새로운 클릭 핸들러 함수 생성
+        seat._clickHandler = function() {
+            const seatId = this.dataset.seat;
+            const reservation = reservations[seatId];
+            
+            if (reservation && typeof reservation === 'object' && reservation.isAssigned) {
+                // 지정된 좌석인 경우 지정 해제 확인
+                if (confirm(`${seatId}번 좌석의 지정을 해제하시겠습니까?\n현재 지정자: ${reservation.name}`)) {
+                    unassignSeat(seatId);
+                }
+            } else if (reservation) {
+                // 일반 예약된 좌석인 경우
+                showNotification(`${seatId}번 좌석은 ${typeof reservation === 'object' ? reservation.name : reservation}님이 예약 중입니다.`, 'info');
+            } else {
+                // 빈 좌석인 경우 바로 지정 모달 열기
+                document.getElementById('assign-seat-number').value = seatId;
+                showSeatAssignModal();
+            }
+        };
+        
+        // 새로운 이벤트 리스너 등록
+        seat.addEventListener('click', seat._clickHandler);
+    });
+}
+
+// 좌석 지정 해제
+async function unassignSeat(seatId) {
+    try {
+        const response = await fetch(`/api/admin/assign-seat/${seatId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess(data.message);
+            updateSeatDisplay();
+            loadReservations();
+            addLog(`좌석 지정 해제: ${seatId}번`);
+        } else {
+            showError(data.message || '좌석 지정 해제에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('좌석 지정 해제 오류:', error);
+        showError('좌석 지정 해제에 실패했습니다.');
+    }
 }
 
 // 예약 통계 업데이트
@@ -362,13 +444,29 @@ function updateCurrentReservationsList() {
         return;
     }
     
-    Object.entries(reservations).forEach(([seatId, userName]) => {
+    Object.entries(reservations).forEach(([seatId, reservation]) => {
         const item = document.createElement('div');
         item.className = 'reservation-item';
+        
+        let userName, isAssigned;
+        if (typeof reservation === 'object') {
+            userName = reservation.name;
+            isAssigned = reservation.isAssigned;
+        } else {
+            userName = reservation;
+            isAssigned = false;
+        }
+        
+        const statusBadge = isAssigned ? '<span class="assigned-badge">지정석</span>' : '';
+        const cancelButton = isAssigned ? 
+            `<button onclick="unassignSeat('${seatId}')" class="admin-unassign-btn">지정해제</button>` :
+            `<button onclick="adminCancelReservation('${seatId}')" class="admin-cancel-btn">취소</button>`;
+        
         item.innerHTML = `
             <span class="seat-number">${seatId}번</span>
             <span class="user-name">${userName}</span>
-            <button onclick="adminCancelReservation('${seatId}')" class="admin-cancel-btn">취소</button>
+            ${statusBadge}
+            ${cancelButton}
         `;
         container.appendChild(item);
     });
@@ -540,7 +638,17 @@ async function exportData() {
 
 // 관리자용 예약 취소
 async function adminCancelReservation(seatId) {
-    if (!confirm(`${seatId}번 자리의 예약을 취소하시겠습니까?`)) {
+    const reservation = reservations[seatId];
+    
+    // 지정된 좌석인지 확인
+    if (typeof reservation === 'object' && reservation.isAssigned) {
+        showError('지정된 좌석은 지정해제 버튼을 사용해주세요.');
+        return;
+    }
+    
+    const userName = typeof reservation === 'object' ? reservation.name : reservation;
+    
+    if (!confirm(`${seatId}번 자리의 예약을 취소하시겠습니까?\n예약자: ${userName}`)) {
         return;
     }
     
@@ -548,11 +656,11 @@ async function adminCancelReservation(seatId) {
         await apiCall(`/reservations/${seatId}`, {
             method: 'DELETE',
             body: JSON.stringify({
-                userName: reservations[seatId], // 관리자는 모든 예약 취소 가능
+                studentId: 'admin-cancel', // 관리자 취소 표시
                 adminAction: true
             })
         });
-        addLog(`관리자 예약 취소: ${seatId}번 (${reservations[seatId]})`, 'warning');
+        addLog(`관리자 예약 취소: ${seatId}번 (${userName})`, 'warning');
     } catch (error) {
         handleError(error, '예약 취소에 실패했습니다.');
     }
@@ -680,6 +788,11 @@ function handleError(error, defaultMessage = '오류가 발생했습니다.') {
 // 성공 메시지 표시
 function showSuccess(message) {
     showNotification(message, 'success');
+}
+
+// 에러 메시지 표시
+function showError(message) {
+    showNotification(message, 'error');
 }
 
 // 디버그 로그 함수

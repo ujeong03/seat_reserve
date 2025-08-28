@@ -1408,6 +1408,46 @@ button:disabled {
     font-size: 12px;
 }
 
+.assigned-badge {
+    background: #9c27b0;
+    color: white;
+    padding: 3px 6px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.admin-unassign-btn {
+    background: #9c27b0;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.admin-unassign-btn:hover {
+    background: #7b1fa2;
+}
+
+.admin-cancel-btn {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.admin-cancel-btn:hover {
+    background: #d32f2f;
+}
+
 .user-name {
     flex: 1;
     margin-left: 10px;
