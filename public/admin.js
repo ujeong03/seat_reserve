@@ -41,8 +41,15 @@ function initializeAdminApp() {
     debugLog('관리자 앱이 초기화되었습니다.');
 }
 
-// Socket.IO 초기화 (관리자 전용)
+// Socket.IO 초기화 (관리자 전용) - Vercel 환경에서는 폴링 모드 사용
 function initializeAdminSocket() {
+    // Socket.IO가 로드되지 않은 경우 (Vercel 환경) 폴링으로 대체
+    if (typeof io === 'undefined') {
+        console.log('🔄 Socket.IO 사용 불가 - 관리자 폴링 모드로 전환');
+        startAdminPollingMode();
+        return;
+    }
+    
     socket = io();
     
     // 연결 이벤트
@@ -105,6 +112,30 @@ function initializeAdminSocket() {
             addLog(`관리자 액션: ${data.action} - 실패: ${data.error}`, 'error');
         }
     });
+}
+
+// 관리자 폴링 모드 (Socket.IO가 없는 환경용)
+function startAdminPollingMode() {
+    console.log('🔄 관리자 폴링 모드 시작');
+    updateConnectionStatus(true);
+    addLog('관리자 폴링 모드로 연결됨', 'info');
+    
+    // 초기 데이터 로드
+    loadInitialData();
+    
+    // 정기적으로 데이터 업데이트 (15초마다 - 관리자는 더 자주)
+    setInterval(async () => {
+        try {
+            await loadInitialData();
+        } catch (error) {
+            console.error('관리자 폴링 업데이트 실패:', error);
+        }
+    }, 15000);
+    
+    // 관리자 액션 후 즉시 업데이트
+    window.forceAdminRefresh = () => {
+        loadInitialData();
+    };
 }
 
 // 로그인 패널 표시

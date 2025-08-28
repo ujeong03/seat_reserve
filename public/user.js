@@ -39,8 +39,15 @@ function initializeApp() {
     debugLog('사용자 앱이 초기화되었습니다.');
 }
 
-// Socket.IO 초기화
+// Socket.IO 초기화 (Socket.IO가 사용 가능한 경우에만)
 function initializeSocket() {
+    // Socket.IO가 로드되지 않은 경우 (Vercel 환경) 폴링으로 대체
+    if (typeof io === 'undefined') {
+        console.log('🔄 Socket.IO 사용 불가 - 폴링 모드로 전환');
+        startPollingMode();
+        return;
+    }
+    
     socket = io();
     
     // 연결 이벤트
@@ -133,6 +140,29 @@ function initializeSocket() {
         
         debugLog('초기 데이터로 UI가 업데이트되었습니다.');
     });
+}
+
+// 폴링 모드 (Socket.IO가 없는 환경용)
+function startPollingMode() {
+    console.log('🔄 폴링 모드 시작');
+    updateConnectionStatus(true);
+    
+    // 초기 데이터 로드
+    loadInitialData();
+    
+    // 정기적으로 데이터 업데이트 (30초마다)
+    setInterval(async () => {
+        try {
+            await loadInitialData();
+        } catch (error) {
+            console.error('폴링 업데이트 실패:', error);
+        }
+    }, 30000);
+    
+    // 예약 변경사항이 있을 때 즉시 업데이트
+    window.forceRefresh = () => {
+        loadInitialData();
+    };
 }
 
 // 이벤트 리스너 초기화
@@ -272,10 +302,14 @@ async function reserveSeat() {
         if (result.success) {
             showSuccess(result.message || `좌석 ${selectedSeat}이 예약되었습니다.`);
             
-            // 예약 성공 후 잠시 후 페이지 새로고침
+            // 예약 성공 후 즉시 업데이트 (폴링 모드) 또는 페이지 새로고침
             setTimeout(() => {
-                window.location.reload();
-            }, 1500); // 1.5초 후 새로고침
+                if (window.forceRefresh) {
+                    window.forceRefresh();
+                } else {
+                    window.location.reload();
+                }
+            }, 1500); // 1.5초 후 업데이트
         }
         
         debugLog(`좌석 ${selectedSeat} 예약 요청을 보냈습니다.`);
@@ -298,12 +332,25 @@ async function cancelReservation() {
     }
     
     try {
-        await apiCall(`/reservations/${selectedSeat}`, {
+        const result = await apiCall(`/reservations/${selectedSeat}`, {
             method: 'DELETE',
             body: JSON.stringify({
                 studentId: currentUser
             })
         });
+        
+        if (result.success) {
+            showSuccess(`${selectedSeat}번 좌석 예약이 취소되었습니다.`);
+            
+            // 취소 성공 후 즉시 업데이트 (폴링 모드) 또는 페이지 새로고침
+            setTimeout(() => {
+                if (window.forceRefresh) {
+                    window.forceRefresh();
+                } else {
+                    window.location.reload();
+                }
+            }, 1500); // 1.5초 후 업데이트
+        }
         
         debugLog(`좌석 ${selectedSeat} 예약 취소 요청을 보냈습니다.`);
     } catch (error) {
