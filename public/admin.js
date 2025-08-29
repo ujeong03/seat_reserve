@@ -52,6 +52,11 @@ function closeNavMenu() {
 
 // 관리자 앱 초기화
 function initializeAdminApp() {
+    // 다국어 지원 초기화
+    if (typeof updatePageLanguage === 'function') {
+        updatePageLanguage();
+    }
+    
     // 세션 만료 확인 (30분)
     const adminLoginTime = localStorage.getItem('adminLoginTime');
     const now = new Date().getTime();
@@ -584,12 +589,22 @@ function updateMaintenanceMode() {
     
     if (isMaintenanceMode) {
         notice.classList.remove('hidden');
-        btn.textContent = '🔧 점검 모드 해제';
-        btn.classList.add('warning');
+        // 다국어 지원: t() 함수 사용
+        if (typeof t === 'function') {
+            btn.innerHTML = t('maintenanceModeDisable') || '🔧 점검 모드 해제';
+        } else {
+            btn.textContent = '🔧 점검 모드 해제';
+        }
+        btn.classList.add('fixed');
     } else {
         notice.classList.add('hidden');
-        btn.textContent = '🔧 점검 모드';
-        btn.classList.remove('warning');
+        // 다국어 지원: t() 함수 사용
+        if (typeof t === 'function') {
+            btn.innerHTML = t('maintenanceMode') || '🔧 점검 모드';
+        } else {
+            btn.textContent = '🔧 점검 모드';
+        }
+        btn.classList.remove('fixed');
     }
 }
 
@@ -633,6 +648,11 @@ async function toggleMaintenanceMode() {
             method: 'POST'
         });
         addLog(`점검 모드 토글 실행`, 'warning');
+        
+        // 점검 모드 변경 후 페이지 새로고침
+        setTimeout(() => {
+            window.location.reload();
+        }, 500); // 0.5초 후 새로고침
     } catch (error) {
         handleError(error, '점검 모드 변경에 실패했습니다.');
     }

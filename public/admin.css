@@ -350,14 +350,15 @@
     transform: translateY(-2px);
 }
 
-.action-btn:not(.danger):not(.warning):not(.info) {
-    background: #e2e8f0;
-    color: #4a5568;
+.action-btn.maintenance {
+    background: #fbd38d;
+    color: #975a16;
 }
 
-.action-btn:not(.danger):not(.warning):not(.info):hover {
-    background: #cbd5e0;
-    transform: translateY(-2px);
+
+.action-btn.fixed {
+    background: #ffa556;
+    color: #975a16;
 }
 
 /* 시스템 로그 */

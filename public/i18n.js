@@ -86,6 +86,7 @@ const i18n = {
         clearAllReservations: "🗑️ 전체 예약 초기화",
         forceSessionChange: "🔄 세션 강제 변경",
         maintenanceMode: "🔧 점검 모드",
+        maintenanceModeDisable: "🔧 점검 모드 해제",
         seatAssignment: "🎯 좌석 지정하기",
         
         // 좌석 지정 모달
@@ -178,8 +179,8 @@ const i18n = {
         
         // 관리자 페이지
         adminTitle: "Admin Page - Lab Seat Reservation System",
-        userPage: "🏠 home",
-        admin: "Admin",
+        userPage: "🏠 Home",
+        admin: "⚙️ Admin",
         logout: "Logout",
         login: "Login",
         adminAuth: "Admin Authentication",
@@ -204,6 +205,7 @@ const i18n = {
         clearAllReservations: "🗑️ Clear All Reservations",
         forceSessionChange: "🔄 Force Session Change",
         maintenanceMode: "🔧 Maintenance Mode",
+        maintenanceModeDisable: "🔧 Disable Maintenance",
         seatAssignment: "🎯 Seat Assignment",
         
         // 좌석 지정 모달
@@ -277,8 +279,13 @@ function updatePageLanguage() {
     const homeLink = document.getElementById('home-link');
     if (homeLink) homeLink.textContent = t('home');
     
+    // 사용자 페이지의 관리자 링크
     const adminLink = document.querySelector('a[href="admin.html"]');
     if (adminLink) adminLink.textContent = t('admin');
+    
+    // 관리자 페이지의 관리자 네비게이션 (ID로 찾기)
+    const adminNavItem = document.getElementById('admin');
+    if (adminNavItem) adminNavItem.textContent = t('admin');
     
     // 관리자 페이지의 사용자 페이지 링크
     const userPageLink = document.querySelector('a[href="index.html"]');
@@ -462,7 +469,17 @@ function updateAdminPageLanguage() {
     if (forceSessionBtn) forceSessionBtn.innerHTML = t('forceSessionChange');
     
     const maintenanceBtn = document.getElementById('maintenance-btn');
-    if (maintenanceBtn) maintenanceBtn.innerHTML = t('maintenanceMode');
+    if (maintenanceBtn) {
+        console.log('maintenanceBtn found, updating to:', t('maintenanceMode'));
+        maintenanceBtn.innerHTML = t('maintenanceMode');
+        // 강제로 스타일 새로고침
+        maintenanceBtn.style.display = 'none';
+        setTimeout(() => {
+            maintenanceBtn.style.display = '';
+        }, 1);
+    } else {
+        console.log('maintenanceBtn not found');
+    }
     
     const seatAssignBtn = document.getElementById('seat-assign-btn');
     if (seatAssignBtn) seatAssignBtn.innerHTML = t('seatAssignment');

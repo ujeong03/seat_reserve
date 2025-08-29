@@ -95,7 +95,15 @@
             ⚠️ 현재 점검 모드입니다. 예약 기능이 제한됩니다.
         </div>
 
-        <div class="room-layout">
+        <!-- 호실 전환 컨트롤 -->
+        <div class="room-selector">
+            <button class="room-btn active" onclick="switchRoom('901')" id="room-901-btn">901호</button>
+            <button class="room-btn" onclick="switchRoom('907')" id="room-907-btn">907호</button>
+        </div>
+
+        <!-- 901호 레이아웃 -->
+        <div class="room-layout" id="room-901">
+            <div class="room-title">901호</div>
             <!-- 창문 (위쪽) -->
             <div class="window top-window">window</div>
             
