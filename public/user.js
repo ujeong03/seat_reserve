@@ -803,3 +803,98 @@ function debugLog(...args) {
         console.log('[DEBUG]', ...args);
     }
 }
+
+// 호실 전환 기능
+let currentRoom = '901';
+
+function switchRoom(roomNumber) {
+    // 현재 선택된 좌석 초기화
+    selectedSeat = null;
+    
+    // 선택된 좌석 표시 제거
+    document.querySelectorAll('.seat.selected').forEach(seat => {
+        seat.classList.remove('selected');
+    });
+    
+    // 예약 버튼 상태 초기화
+    const reserveBtn = document.getElementById('reserve-btn');
+    if (reserveBtn) {
+        reserveBtn.disabled = true;
+        const i18nKey = reserveBtn.getAttribute('data-i18n') || 'reserve';
+        reserveBtn.textContent = i18n.currentLanguage === 'ko' ? 
+            (i18n.ko[i18nKey] || '예약하기') : 
+            (i18n.en[i18nKey] || 'Reserve');
+    }
+    
+    // 호실 레이아웃 전환
+    document.getElementById(`room-${currentRoom}`).classList.add('hidden');
+    document.getElementById(`room-${roomNumber}`).classList.remove('hidden');
+    
+    // 버튼 상태 업데이트
+    document.getElementById(`room-${currentRoom}-btn`).classList.remove('active');
+    document.getElementById(`room-${roomNumber}-btn`).classList.add('active');
+    
+    currentRoom = roomNumber;
+    
+    // 좌석 이벤트 리스너 재등록
+    initializeSeatClickEvents();
+    
+    // 예약 정보 다시 로드
+    updateSeatDisplay();
+    
+    debugLog(`호실 전환: ${roomNumber}호`);
+}
+
+// 좌석 클릭 이벤트 초기화 (호실별 좌석 포함)
+function initializeSeatClickEvents() {
+    document.querySelectorAll('.seat:not(.professor-seat)').forEach(seat => {
+        // 기존 이벤트 리스너 제거
+        seat.removeEventListener('click', seat._clickHandler);
+        seat.removeEventListener('keydown', seat._keyHandler);
+        
+        // 새로운 클릭 핸들러
+        seat._clickHandler = function() {
+            selectSeat(this.dataset.seat);
+        };
+        
+        // 새로운 키보드 핸들러
+        seat._keyHandler = function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selectSeat(this.dataset.seat);
+            }
+        };
+        
+        seat.addEventListener('click', seat._clickHandler);
+        seat.addEventListener('keydown', seat._keyHandler);
+    });
+}
+
+// 교수님 좌석 클릭 방지
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.professor-seat').forEach(seat => {
+        seat.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showNotification(t('professorSeatMessage') || '교수님 전용 좌석입니다.', 'info');
+        });
+    });
+});
+
+// 기존 initializeApp 함수 수정 - 호실 기능 포함
+const originalInitializeApp = initializeApp;
+initializeApp = function() {
+    originalInitializeApp();
+    
+    // 호실 전환 초기화
+    currentRoom = '901';
+    
+    // 교수님 좌석 비활성화
+    document.querySelectorAll('.professor-seat').forEach(seat => {
+        seat.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showNotification(t('professorSeatMessage') || '교수님 전용 좌석입니다.', 'info');
+        });
+    });
+};

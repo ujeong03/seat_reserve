@@ -31,6 +31,10 @@ const i18n = {
         // 방 레이아웃
         window: "창문",
         door: "출입구",
+        room901: "901호",
+        room907: "907호",
+        professorSeat: "교수님 자리",
+        professorSeatMessage: "교수님 전용 좌석입니다.",
         
         // 좌석 관련
         seatLabel: "번 좌석",
@@ -150,6 +154,10 @@ const i18n = {
         // 방 레이아웃
         window: "Window",
         door: "Door",
+        room901: "Room 901",
+        room907: "Room 907",
+        professorSeat: "Professor's Seat",
+        professorSeatMessage: "This is a professor-only seat.",
         
         // 좌석 관련
         seatLabel: "",
@@ -242,9 +250,13 @@ const i18n = {
 // 현재 언어 (기본값: 한국어)
 let currentLanguage = localStorage.getItem('language') || 'ko';
 
+// i18n 객체에 currentLanguage 속성 추가
+i18n.currentLanguage = currentLanguage;
+
 // 언어 변경 함수
 function changeLanguage(lang) {
     currentLanguage = lang;
+    i18n.currentLanguage = lang;  // i18n 객체도 업데이트
     localStorage.setItem('language', lang);
     
     // HTML lang 속성 업데이트
@@ -342,8 +354,28 @@ function updateUserPageLanguage() {
         window.textContent = t('window');
     });
     
-    const door = document.querySelector('.door');
-    if (door) door.textContent = t('door');
+    const doors = document.querySelectorAll('.door');
+    doors.forEach(door => {
+        door.textContent = t('door');
+    });
+    
+    // 호실 버튼
+    const room901Btn = document.getElementById('room-901-btn');
+    if (room901Btn) room901Btn.textContent = t('room901');
+    
+    const room907Btn = document.getElementById('room-907-btn');
+    if (room907Btn) room907Btn.textContent = t('room907');
+    
+    // 호실 제목
+    const room901Title = document.querySelector('#room-901 .room-title');
+    if (room901Title) room901Title.textContent = t('room901');
+    
+    const room907Title = document.querySelector('#room-907 .room-title');
+    if (room907Title) room907Title.textContent = t('room907');
+    
+    // 교수님 자리 라벨
+    const professorLabel = document.querySelector('.professor-label');
+    if (professorLabel) professorLabel.textContent = t('professorSeat');
     
     // 좌석 aria-label 업데이트
     const seats = document.querySelectorAll('.seat');
@@ -579,6 +611,9 @@ function updateLanguageButtons() {
 
 // 페이지 로드 시 언어 설정
 document.addEventListener('DOMContentLoaded', function() {
+    // i18n 객체에 현재 언어 설정
+    i18n.currentLanguage = currentLanguage;
+    
     // HTML lang 속성 설정
     document.documentElement.lang = currentLanguage;
     

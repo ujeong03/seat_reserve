@@ -104,8 +104,6 @@
         <!-- 901호 레이아웃 -->
         <div class="room-layout" id="room-901">
             <div class="room-title">901호</div>
-            <!-- 창문 (위쪽) -->
-            <div class="window top-window">window</div>
             
             <!-- 방 중앙의 2x2 배열 테이블 2개 -->
             <div class="center-tables">
@@ -145,8 +143,33 @@
                 </div>
             </div>
 
-            <!-- 창문 (오른쪽) -->
-            <div class="window right-window">window</div>
+        </div>
+
+        <!-- 907호 레이아웃 -->
+        <div class="room-layout hidden" id="room-907">
+            <div class="room-title">907호</div>
+            
+            <!-- 가운데 2x1 테이블 2개 -->
+            <div class="center-tables-907">
+                <!-- 왼쪽 2x1 테이블 (교수님 자리 포함) -->
+                <div class="table-group-907" id="table-group-907-1">
+                    <div class="seats-grid table-2x1">
+                        <div class="seat professor-seat" data-seat="P1" aria-label="교수님 좌석">P</div>
+                        <div class="seat" data-seat="14" tabindex="0" role="button" aria-label="14번 좌석">14</div>
+                    </div>
+                </div>
+                
+                <!-- 오른쪽 2x1 테이블 -->
+                <div class="table-group-907" id="table-group-907-2">
+                    <div class="seats-grid table-2x1">
+                        <div class="seat" data-seat="15" tabindex="0" role="button" aria-label="15번 좌석">15</div>
+                        <div class="seat" data-seat="16" tabindex="0" role="button" aria-label="16번 좌석">16</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 방문 (테이블들 아래 중앙) -->
+            <div class="door room-907-door">door</div>
         </div>
 
         <div class="controls">
@@ -161,8 +184,8 @@
             </div>
             
             <div class="action-buttons">
-                <button id="reserve-btn" onclick="reserveSeat()" disabled>Reserve</button>
-                <button id="cancel-btn" onclick="cancelReservation()" disabled>Cancel Reservation</button>
+                <button id="reserve-btn" data-i18n="reserve" onclick="reserveSeat()" disabled>예약 하기</button>
+                <button id="cancel-btn" data-i18n="cancelReservation" onclick="cancelReservation()" disabled>예약 취소</button>
             </div>
         </div>
 

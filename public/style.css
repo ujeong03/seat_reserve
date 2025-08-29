@@ -352,39 +352,6 @@ header h1 {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* 창문 스타일 */
-.window {
-    background: linear-gradient(45deg, #87CEEB, #4682B4);
-    color: white;
-    padding: 10px;
-    text-align: center;
-    border-radius: 8px;
-    font-weight: normal; /* bold에서 normal로 변경 */
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.top-window {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 280px; /* 더 길게 */
-}
-
-.right-window {
-    position: absolute;
-    right: 15px;
-    top: 50%; /* 30%에서 50%로 변경하여 더 아래쪽으로 이동 */
-    transform: translateY(-50%);
-    width: 45px;  /* 너비 감소 */
-    height: 250px; /* 길이 증가 */
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 /* 방문 스타일 */
 .door {
     width: 70px;
@@ -732,27 +699,7 @@ button:disabled {
         gap: 15px; /* 태블릿에서 더 넉넉한 간격 */
     }
     
-    .top-window {
-        width: 160px;
-        font-size: 13px;
-    }
-    
-    .right-window {
-        width: 30px !important;
-        height: 140px !important;
-        padding: 6px;
-        font-size: 11px;
-        writing-mode: vertical-rl !important;
-        text-orientation: mixed !important;
-        top: 35% !important;
-        right: 8px;
 
-        /* 가운데 정렬 추가 */
-        display: flex;
-        justify-content: center; /* 가로축 가운데 */
-        align-items: center;     /* 세로축 가운데 */
-        text-align: center;      /* 텍스트 정렬 보정 */
-    }
     
     .door {
         width: 65px;
@@ -967,28 +914,6 @@ button:disabled {
         min-height: 350px; /* 450px에서 350px로 줄임 */
     }
     
-    .top-window {
-        width: 120px;
-        padding: 8px;
-        font-size: 12px;
-    }
-    
-    .right-window {
-        width: 40px !important;
-        height: 140px !important;
-        padding: 6px;
-        font-size: 11px;
-        writing-mode: vertical-rl !important;
-        text-orientation: mixed !important;
-        top: 35% !important;
-        right: 8px;
-
-        /* 가운데 정렬 추가 */
-        display: flex;
-        justify-content: center; /* 가로축 가운데 */
-        align-items: center;     /* 세로축 가운데 */
-        text-align: center;      /* 텍스트 정렬 보정 */
-    }
     
     .door {
         width: 55px;
@@ -1129,28 +1054,6 @@ button:disabled {
         min-height: 320px; /* 400px에서 320px로 줄임 */
     }
     
-    .top-window {
-        width: 140px; /* 모바일에서 더 길게 */
-        padding: 6px;
-        font-size: 10px;
-    }
-    
-    .right-window {
-        width: 30px !important;  /* 모바일에서 더 작게 */
-        height: 180px !important; /* 모바일에서 적당한 길이 */
-        padding: 6px;
-        font-size: 11px;
-        writing-mode: vertical-rl !important;
-        text-orientation: mixed !important;
-        top: 35% !important;
-        right: 8px;
-
-        /* 가운데 정렬 추가 */
-        display: flex;
-        justify-content: center; /* 가로축 가운데 */
-        align-items: center;     /* 세로축 가운데 */
-        text-align: center;      /* 텍스트 정렬 보정 */
-    }
     
     .door {
         width: 40px;  /* 모바일에서 크기 더 작게 */
@@ -1320,7 +1223,7 @@ button:disabled {
         border-width: 1px;
     }
     
-    .window, .door {
+    .door {
         box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 }
@@ -1601,20 +1504,6 @@ button:disabled {
     margin: -50px 0;
 }
 
-.window.mini {
-    font-size: 8px;
-    padding: 4px;
-}
-
-.top-window.mini {
-    width: 120px;
-}
-
-.right-window.mini {
-    width: 25px;
-    height: 100px;
-}
-
 .door.mini {
     width: 35px;
     height: 50px;
@@ -1734,4 +1623,176 @@ button:disabled {
 
 .action-btn.success:hover {
     background: #45a049;
+}
+
+/* 호실 전환 컨트롤 */
+.room-selector {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    gap: 10px;
+}
+
+.room-btn {
+    padding: 10px 20px;
+    border: 2px solid #667eea;
+    background: transparent;
+    color: #667eea;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.room-btn.active,
+.room-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.room-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+.room-btn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* 호실 레이아웃 공통 */
+.room-layout {
+    position: relative;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.room-layout.hidden {
+    display: none;
+}
+
+.room-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 15px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-radius: 20px;
+    display: inline-block;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* 907호 전용 스타일 */
+#room-907 {
+    min-height: 450px;
+    position: relative;
+    padding: 20px;
+}
+
+/* 907호 중앙 테이블들 */
+.center-tables-907 {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0 60px 0;
+    align-items: center;
+}
+
+.table-group-907 {
+    text-align: center;
+    position: relative;
+}
+
+.table-2x1 {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+}
+
+.room-907-door {
+    position: absolute;
+    bottom: 30px;
+    left: 55%;
+    transform: translateX(-50%);
+    min-width: 60px;
+    height: 80px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.professor-seat {
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e) !important;
+    color: white !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+.professor-seat:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* 모바일 호실 전환 스타일 */
+@media (max-width: 768px) {
+    .room-selector {
+        position: sticky;
+        top: var(--navbar-height);
+        background: white;
+        z-index: 100;
+        padding: 10px 0;
+        margin: 0 -10px 20px -10px;
+        padding-left: 20px;
+        padding-right: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .room-btn {
+        flex: 1;
+        max-width: 120px;
+    }
+    
+    /* 907호 모바일 최적화 */
+    #room-907 {
+        min-height: 350px;
+        padding: 15px;
+    }
+}
+
+/* 작은 모바일 (480px 이하) - 907호 */
+@media (max-width: 480px) {
+    #room-907 {
+        min-height: 280px;
+    }
+    
+    .center-tables-907 {
+        gap: 25px;
+        margin: 20px 0 50px 0;
+    }
+    
+    .room-907-door {
+        bottom: 20px;
+        left: 60%;
+        min-width: 40px;
+        height: 55px;
+        font-size: 12px;
+    }
 }
