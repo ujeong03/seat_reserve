@@ -8,6 +8,7 @@ let currentSession = 'morning';
 let isMaintenanceMode = false;
 let onlineUsersCount = 0;
 let systemLogs = [];
+let currentAdminRoom = '901';
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
@@ -376,30 +377,39 @@ async function apiCall(url, options = {}) {
 function updateSeatDisplay() {
     document.querySelectorAll('.seat.mini').forEach(seat => {
         const seatId = seat.dataset.seat;
+        const roomId = seat.dataset.room;
+        
+        // 교수님 자리는 스킵
+        if (seatId === 'P') {
+            return;
+        }
         
         // 모든 상태 클래스 제거
         seat.classList.remove('available', 'occupied', 'assigned');
         
-        if (reservations[seatId]) {
-            const reservation = reservations[seatId];
+        // 방별 예약 키 생성 (예: "901-1", "907-2")
+        const reservationKey = roomId ? `${roomId}-${seatId}` : seatId;
+        
+        if (reservations[reservationKey]) {
+            const reservation = reservations[reservationKey];
             
             // 새로운 데이터 구조 확인 (객체인지 문자열인지)
             if (typeof reservation === 'object') {
                 if (reservation.isAssigned) {
                     seat.classList.add('assigned');
-                    seat.title = `${seatId}번 - ${reservation.name}님 지정석`;
+                    seat.title = `${roomId}호 ${seatId}번 - ${reservation.name}님 지정석`;
                 } else {
                     seat.classList.add('occupied');
-                    seat.title = `${seatId}번 - ${reservation.name}님이 예약`;
+                    seat.title = `${roomId}호 ${seatId}번 - ${reservation.name}님이 예약`;
                 }
             } else {
                 // 이전 데이터 구조 호환성 (문자열)
                 seat.classList.add('occupied');
-                seat.title = `${seatId}번 - ${reservation}님이 예약`;
+                seat.title = `${roomId}호 ${seatId}번 - ${reservation}님이 예약`;
             }
         } else {
             seat.classList.add('available');
-            seat.title = `${seatId}번 - 예약 가능`;
+            seat.title = `${roomId}호 ${seatId}번 - 예약 가능`;
         }
     });
     
@@ -410,25 +420,32 @@ function updateSeatDisplay() {
 // 좌석 클릭 이벤트 초기화
 function initializeSeatClickEvents() {
     document.querySelectorAll('.seat.mini').forEach(seat => {
+        // 교수님 자리는 클릭 이벤트 제거
+        if (seat.dataset.seat === 'P') {
+            return;
+        }
+        
         // 기존 이벤트 리스너 제거
         seat.removeEventListener('click', seat._clickHandler);
         
         // 새로운 클릭 핸들러 함수 생성
         seat._clickHandler = function() {
             const seatId = this.dataset.seat;
-            const reservation = reservations[seatId];
+            const roomId = this.dataset.room;
+            const reservationKey = roomId ? `${roomId}-${seatId}` : seatId;
+            const reservation = reservations[reservationKey];
             
             if (reservation && typeof reservation === 'object' && reservation.isAssigned) {
                 // 지정된 좌석인 경우 지정 해제 확인
-                if (confirm(`${seatId}번 좌석의 지정을 해제하시겠습니까?\n현재 지정자: ${reservation.name}`)) {
-                    unassignSeat(seatId);
+                if (confirm(`${roomId}호 ${seatId}번 좌석의 지정을 해제하시겠습니까?\n현재 지정자: ${reservation.name}`)) {
+                    unassignSeat(reservationKey);
                 }
             } else if (reservation) {
                 // 일반 예약된 좌석인 경우
-                showNotification(`${seatId}번 좌석은 ${typeof reservation === 'object' ? reservation.name : reservation}님이 예약 중입니다.`, 'info');
+                showNotification(`${roomId}호 ${seatId}번 좌석은 ${typeof reservation === 'object' ? reservation.name : reservation}님이 예약 중입니다.`, 'info');
             } else {
                 // 빈 좌석인 경우 바로 지정 모달 열기
-                document.getElementById('assign-seat-number').value = seatId;
+                document.getElementById('assign-seat-number').value = `${roomId}-${seatId}`;
                 showSeatAssignModal();
             }
         };
@@ -466,8 +483,14 @@ async function unassignSeat(seatId) {
 
 // 예약 통계 업데이트
 function updateReservationStats() {
-    const totalSeats = 13;
-    const occupiedSeats = Object.keys(reservations).length;
+    // 901호: 13석, 907호: 3석 (교수님 자리 제외)
+    const room901Seats = 13;
+    const room907Seats = 3;
+    const totalSeats = room901Seats + room907Seats;
+    
+    // 전체 예약 수 계산 (모든 방 포함)
+    const allReservations = reservations || {};
+    const occupiedSeats = Object.keys(allReservations).length;
     const occupancyRate = Math.round((occupiedSeats / totalSeats) * 100);
     
     document.getElementById('occupancy-rate').textContent = `${occupancyRate}%`;
@@ -484,11 +507,11 @@ function updateCurrentReservationsList() {
         return;
     }
     
-    Object.entries(reservations).forEach(([seatId, reservation]) => {
+    Object.entries(reservations).forEach(([seatKey, reservation]) => {
         const item = document.createElement('div');
         item.className = 'reservation-item';
         
-        let userName, isAssigned;
+        let userName, isAssigned, displaySeat;
         if (typeof reservation === 'object') {
             userName = reservation.name;
             isAssigned = reservation.isAssigned;
@@ -497,13 +520,21 @@ function updateCurrentReservationsList() {
             isAssigned = false;
         }
         
+        // 좌석 표시 형식 결정 (예: "901-1" -> "901호 1번", "1" -> "1번")
+        if (seatKey.includes('-')) {
+            const [roomId, seatId] = seatKey.split('-');
+            displaySeat = `${roomId}호 ${seatId}번`;
+        } else {
+            displaySeat = `${seatKey}번`;
+        }
+        
         const statusBadge = isAssigned ? '<span class="assigned-badge">지정석</span>' : '';
         const cancelButton = isAssigned ? 
-            `<button onclick="unassignSeat('${seatId}')" class="admin-unassign-btn">지정해제</button>` :
-            `<button onclick="adminCancelReservation('${seatId}')" class="admin-cancel-btn">취소</button>`;
+            `<button onclick="unassignSeat('${seatKey}')" class="admin-unassign-btn">지정해제</button>` :
+            `<button onclick="adminCancelReservation('${seatKey}')" class="admin-cancel-btn">취소</button>`;
         
         item.innerHTML = `
-            <span class="seat-number">${seatId}번</span>
+            <span class="seat-number">${displaySeat}</span>
             <span class="user-name">${userName}</span>
             ${statusBadge}
             ${cancelButton}
@@ -661,15 +692,17 @@ async function toggleMaintenanceMode() {
 async function exportData() {
     try {
         const today = new Date().toDateString();
+        const totalSeats = 16; // 901호: 13석, 907호: 3석
+        const occupiedSeats = Object.keys(reservations).length;
         const exportData = {
             date: today,
             session: currentSession,
             timestamp: new Date().toISOString(),
             reservations: reservations,
             onlineUsers: onlineUsersCount,
-            totalSeats: 13,
-            occupiedSeats: Object.keys(reservations).length,
-            occupancyRate: Math.round((Object.keys(reservations).length / 13) * 100),
+            totalSeats: totalSeats,
+            occupiedSeats: occupiedSeats,
+            occupancyRate: Math.round((occupiedSeats / totalSeats) * 100),
             maintenanceMode: isMaintenanceMode,
             logs: systemLogs.slice(-100) // 최근 100개 로그만
         };
@@ -1135,3 +1168,23 @@ document.addEventListener('keydown', function(event) {
         closeSeatAssignModal();
     }
 });
+
+// 관리자 페이지 방 전환 함수
+function switchAdminRoom(roomNumber) {
+    currentAdminRoom = roomNumber;
+    
+    // 모든 방 레이아웃 숨기기
+    document.getElementById('admin-room-901').classList.add('hidden');
+    document.getElementById('admin-room-907').classList.add('hidden');
+    
+    // 선택된 방 레이아웃 보이기
+    document.getElementById(`admin-room-${roomNumber}`).classList.remove('hidden');
+    
+    // 방 버튼 활성화 상태 업데이트
+    document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`admin-room-${roomNumber}-btn`).classList.add('active');
+    
+    // 좌석 상태 업데이트
+    updateSeatDisplay();
+    updateReservationStats();
+}

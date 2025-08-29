@@ -101,7 +101,7 @@
                 </div>
                 <div class="stat-card">
                     <h3 id="reserved-seats-title">예약된 좌석</h3>
-                    <div class="stat-value"><span id="occupied-seats">0</span>/13</div>
+                    <div class="stat-value"><span id="occupied-seats">0</span>/16</div>
                 </div>
                 <div class="stat-card">
                     <h3 id="online-users-title">온라인 사용자</h3>
@@ -116,25 +116,33 @@
             <!-- 좌석 현황 -->
             <div class="seat-overview">
                 <h3 id="seat-overview-title">좌석 현황</h3>
-                <div class="room-layout mini">
+                
+                <!-- 방 선택기 -->
+                <div class="room-selector">
+                    <button class="room-btn active" id="admin-room-901-btn" onclick="switchAdminRoom('901')">901호</button>
+                    <button class="room-btn" id="admin-room-907-btn" onclick="switchAdminRoom('907')">907호</button>
+                </div>
+                
+                <!-- 901호 레이아웃 -->
+                <div class="room-layout mini" id="admin-room-901">
                     
                     <!-- 방 중앙의 2x2 배열 테이블 2개 -->
                     <div class="center-tables">
                         <div class="table-group" id="admin-table-group-1">
                             <div class="seats-grid table-2x2">
-                                <div class="seat mini" data-seat="1">1</div>
-                                <div class="seat mini" data-seat="2">2</div>
-                                <div class="seat mini" data-seat="3">3</div>
-                                <div class="seat mini" data-seat="4">4</div>
+                                <div class="seat mini" data-seat="1" data-room="901">1</div>
+                                <div class="seat mini" data-seat="2" data-room="901">2</div>
+                                <div class="seat mini" data-seat="3" data-room="901">3</div>
+                                <div class="seat mini" data-seat="4" data-room="901">4</div>
                             </div>
                         </div>
                         
                         <div class="table-group" id="admin-table-group-2">
                             <div class="seats-grid table-2x2">
-                                <div class="seat mini" data-seat="5">5</div>
-                                <div class="seat mini" data-seat="6">6</div>
-                                <div class="seat mini" data-seat="7">7</div>
-                                <div class="seat mini" data-seat="8">8</div>
+                                <div class="seat mini" data-seat="5" data-room="901">5</div>
+                                <div class="seat mini" data-seat="6" data-room="901">6</div>
+                                <div class="seat mini" data-seat="7" data-room="901">7</div>
+                                <div class="seat mini" data-seat="8" data-room="901">8</div>
                             </div>
                         </div>
                     </div>
@@ -145,16 +153,37 @@
                         <!-- 1x5 좌석 (오른쪽) -->
                         <div class="bottom-table">
                             <div class="seats-grid table-1x5">
-                                <div class="seat mini" data-seat="9">9</div>
-                                <div class="seat mini" data-seat="10">10</div>
-                                <div class="seat mini" data-seat="11">11</div>
-                                <div class="seat mini" data-seat="12">12</div>
-                                <div class="seat mini" data-seat="13">13</div>
+                                <div class="seat mini" data-seat="9" data-room="901">9</div>
+                                <div class="seat mini" data-seat="10" data-room="901">10</div>
+                                <div class="seat mini" data-seat="11" data-room="901">11</div>
+                                <div class="seat mini" data-seat="12" data-room="901">12</div>
+                                <div class="seat mini" data-seat="13" data-room="901">13</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 907호 레이아웃 -->
+<div class="room-layout mini hidden" id="admin-room-907">
+                    <!-- 방 중앙의 2x1 배열 테이블들 -->
+                    <div class="center-tables-907">
+                        <!-- 왼쪽 테이블: P(위), 14(아래) -->
+                        <div class="table-group-907">
+                            <div class="seats-grid table-2x1">
+                                <div class="seat mini professor-seat" data-seat="P" data-room="907">P</div>
+                                <div class="seat mini" data-seat="14" data-room="907">14</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 오른쪽 테이블: 15(위), 16(아래) -->
+                        <div class="table-group-907">
+                            <div class="seats-grid table-2x1">
+                                <div class="seat mini" data-seat="15" data-room="907">15</div>
+                                <div class="seat mini" data-seat="16" data-room="907">16</div>
                             </div>
                         </div>
                     </div>
 
-                    
                 </div>
             </div>
 
@@ -197,19 +226,26 @@
                                 <label for="assign-seat-number" id="seat-number-label">좌석 번호:</label>
                                 <select id="assign-seat-number">
                                     <option value="" id="select-seat-option">좌석을 선택하세요</option>
-                                    <option value="1">1번 좌석</option>
-                                    <option value="2">2번 좌석</option>
-                                    <option value="3">3번 좌석</option>
-                                    <option value="4">4번 좌석</option>
-                                    <option value="5">5번 좌석</option>
-                                    <option value="6">6번 좌석</option>
-                                    <option value="7">7번 좌석</option>
-                                    <option value="8">8번 좌석</option>
-                                    <option value="9">9번 좌석</option>
-                                    <option value="10">10번 좌석</option>
-                                    <option value="11">11번 좌석</option>
-                                    <option value="12">12번 좌석</option>
-                                    <option value="13">13번 좌석</option>
+                                    <optgroup label="901호">
+                                        <option value="901-1">901호 1번 좌석</option>
+                                        <option value="901-2">901호 2번 좌석</option>
+                                        <option value="901-3">901호 3번 좌석</option>
+                                        <option value="901-4">901호 4번 좌석</option>
+                                        <option value="901-5">901호 5번 좌석</option>
+                                        <option value="901-6">901호 6번 좌석</option>
+                                        <option value="901-7">901호 7번 좌석</option>
+                                        <option value="901-8">901호 8번 좌석</option>
+                                        <option value="901-9">901호 9번 좌석</option>
+                                        <option value="901-10">901호 10번 좌석</option>
+                                        <option value="901-11">901호 11번 좌석</option>
+                                        <option value="901-12">901호 12번 좌석</option>
+                                        <option value="901-13">901호 13번 좌석</option>
+                                    </optgroup>
+                                    <optgroup label="907호">
+                                        <option value="907-14">907호 14번 좌석</option>
+                                        <option value="907-15">907호 15번 좌석</option>
+                                        <option value="907-16">907호 16번 좌석</option>
+                                    </optgroup>
                                 </select>
                             </div>
                             <div class="form-group">
